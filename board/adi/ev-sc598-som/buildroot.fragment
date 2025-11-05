@@ -1,0 +1,4 @@
+BR2_ROOTFS_POST_BUILD_SCRIPT="$(BR2_EXTERNAL_ADI_PATH)/board/adi/ev-sc598-som/post-build.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT="support/scripts/genimage.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT_ARGS="-c $(BR2_EXTERNAL_ADI_PATH)/board/adi/ev-sc598-som/genimage.cfg"
+BR2_PACKAGE_HOST_GENIMAGE=y
