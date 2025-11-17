@@ -1,0 +1,55 @@
+name: Build ADI artifacts
+
+on: [pull_request]
+
+env:
+  BR2_DL_DIR: '~/.buildroot-dl'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    strategy:
+      matrix:
+        defconfig:
+          - adi_sc598_ezkit_defconfig
+
+    steps:
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libncurses5-dev rsync wget unzip bc cpio python3 mercurial git make g++ perl ccache mtools
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: true
+
+      - name: Cache download directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildroot-dl
+          key: ${{ runner.os }}-buildroot-dl-${{ matrix.defconfig }}-${{ hashFiles('Makefile') }}
+          restore-keys: ${{ runner.os }}-buildroot-dl-${{ matrix.defconfig }}-
+
+      - name: Cache ccache directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildroot-ccache
+          key: ${{ runner.os }}-ccache-${{ matrix.defconfig }}-${{ hashFiles('Makefile') }}
+          restore-keys: ${{ runner.os }}-ccache-${{ matrix.defconfig }}-
+
+      - name: Configure and build
+        run: |
+          cd buildroot
+          make BR2_EXTERNAL="${PWD}/.." ${{ matrix.defconfig }}
+          support/kconfig/merge_config.sh .config \
+            ../configs/buildroot.fragment \
+            ../configs/debug.fragment
+          make -j$(nproc)
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: adi-buildroot-${{ steps.ghd.outputs.describe }}-${{ matrix.defconfig }}
+          path: output/images
