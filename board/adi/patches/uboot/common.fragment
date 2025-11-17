@@ -1,0 +1,27 @@
+# CONFIG_ENV_IS_IN_FLASH is not set
+
+#device model
+CONFIG_DM=y
+#device model gpio
+CONFIG_DM_GPIO=y
+#device model i2c
+CONFIG_DM_I2C=y
+#device model i2c gpio
+CONFIG_DM_I2C_GPIO=y
+#to set gpio in boot
+CONFIG_CMD_GPIO=y
+# early init for gpio controller
+CONFIG_SPL_GPIO_HOG=y
+#not so imp
+CONFIG_DM_GPIO_LOOKUP_LABEL=y
+CONFIG_SPL_DM_GPIO_LOOKUP_LABEL=y
+
+#new expander
+CONFIG_ADP5588_GPIO=y
+
+CONFIG_AUTOBOOT_MENU_SHOW=y
+CONFIG_CMD_BOOTMENU=y
+CONFIG_CMD_FAT=y
+CONFIG_CMD_GPT=y
+CONFIG_CMD_MTD=y
+CONFIG_CMD_WGET=y
