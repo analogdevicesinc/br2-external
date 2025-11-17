@@ -1,0 +1,32 @@
+diff --git a/arch/arm64/boot/dts/adi/sc598-som-ezkit.dts b/arch/arm64/boot/dts/adi/sc598-som-ezkit.dts
+index 61a160a4bbaf..e850048b7066 100644
+--- a/arch/arm64/boot/dts/adi/sc598-som-ezkit.dts
++++ b/arch/arm64/boot/dts/adi/sc598-som-ezkit.dts
+@@ -84,15 +84,15 @@ ssw1: gpio@22 {
+ 
+ 		eeprom {
+ 			gpio-hog;
+-			gpios = <0 GPIO_ACTIVE_HIGH>;
++			gpios = <0 GPIO_ACTIVE_LOW>; /* was GPIO_ACTIVE_HIGH */
+ 			output-low;
+ 			line-name = "eeprom-en";
+ 		};
+ 
+ 		pushbutton {
+ 			gpio-hog;
+-			gpios = <1 GPIO_ACTIVE_HIGH>;
+-			output-high;
++			gpios = <1 GPIO_ACTIVE_LOW>; /* was GPIO_ACTIVE_HIGH */
++			output-low;                  /* was output-high */
+ 			line-name = "pushbutton-en";
+ 		};
+ 
+@@ -133,7 +133,7 @@ adau1979 {
+ 
+ 		octal {
+ 			gpio-hog;
+-			gpios = <8 GPIO_ACTIVE_HIGH>;
++			gpios = <8 GPIO_ACTIVE_LOW>; /* was GPIO_ACTIVE_HIGH */
+ 			output-low;
+ 			line-name = "octal-spi-cs-en";
+ 		};
