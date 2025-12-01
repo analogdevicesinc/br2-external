@@ -1,0 +1,55 @@
+name: Build ADI artifacts
+
+on:
+  workflow_dispatch:
+  pull_request:
+  release:
+    types: [published]
+
+env:
+  BR2_DL_DIR: ~/.buildroot-dl
+
+jobs:
+  build:
+    runs-on: self-hosted
+
+    strategy:
+      matrix:
+        defconfig:
+          - adi_sc598_ezkit_defconfig
+
+    steps:
+      - name: Checkout br2-external
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Cache download directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildroot-dl
+          key: ${{ runner.os }}-buildroot-dl-${{ matrix.defconfig }}
+          restore-keys: ${{ runner.os }}-buildroot-dl-
+
+      - name: Cache ccache directory
+        uses: actions/cache@v4
+        with:
+          path: ~/.buildroot-ccache
+          key: ${{ runner.os }}-ccache-${{ matrix.defconfig }}
+          restore-keys: ${{ runner.os }}-ccache-
+
+      - name: Build image for ${{ matrix.defconfig }}
+        run: |
+          cd buildroot
+          make BR2_EXTERNAL="${PWD}/.." ${{ matrix.defconfig }}
+          support/kconfig/merge_config.sh .config \
+            ../configs/buildroot.fragment \
+            ../configs/debug.fragment
+          make -j$(nproc)
+
+      - name: Upload Buildroot images for ${{ matrix.defconfig }}
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: images-${{ matrix.defconfig }}
+          path: buildroot/output/images
