@@ -47,6 +47,11 @@ jobs:
             ../configs/debug.fragment
           make -j$(nproc)
 
+      - name: Fetch u-boot.gdb helper script
+        run: |
+          cd buildroot/output/images
+          curl -L https://raw.githubusercontent.com/analogdevicesinc/documentation/refs/heads/main/docs/products/adsp/u-boot.gdb -o u-boot.gdb
+
       - name: Upload Buildroot images for ${{ matrix.defconfig }}
         if: success()
         uses: actions/upload-artifact@v4
