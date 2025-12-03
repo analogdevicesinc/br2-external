@@ -58,3 +58,17 @@ jobs:
         with:
           name: images-${{ matrix.defconfig }}
           path: buildroot/output/images
+
+      - name: Archive output images directory
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          tar -cJvf images-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz \
+            buildroot/output/images/
+
+      - name: Upload release archive to release
+        uses: svenstaro/upload-release-action@v2
+        if: ${{ github.event_name == 'release' }}
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: images-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz
+          tag: ${{ github.ref }}
