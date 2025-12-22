@@ -1,0 +1,57 @@
+#!/bin/sh
+
+mount -t proc proc /proc
+mount -t sysfs sys /sys
+mount -t devtmpfs devtmpfs /dev
+
+set -e
+
+RCU0_STAT=0x3108C004
+BITP_RCU_STAT_BMODE=8
+BITM_RCU_STAT_BMODE=0x00000F00
+SPI_BMODE=1 #SPI Master Boot
+
+echo
+echo "======== Installer Environment ========"
+echo "Install U-Boot to SPI Flash"
+echo
+echo "This will erase and program SPI flash."
+printf "Continue? [y/N]: "
+
+read -r ans
+
+case "$ans" in
+  y|Y)
+    echo "Installing to SPI flash..."
+
+    flash_erase /dev/mtd0 0 0
+    flashcp /lib/firmware/u-boot-spl.ldr /dev/mtd0
+
+    flash_erase /dev/mtd1 0 0
+    flashcp /lib/firmware/u-boot.ldr /dev/mtd1
+
+    sync
+    echo "SPI install complete"
+    echo
+    echo "Set the switch S1 to position 1 (SPI boot)."
+    echo "Waiting for switch..."
+    ;;
+  *)
+    echo "Aborted."
+    while true; do sleep 3600; done
+    ;;
+esac
+
+while true; do
+    val=$(devmem $RCU0_STAT 32)
+    mode=$(( (val & BITM_RCU_STAT_BMODE) >> BITP_RCU_STAT_BMODE))
+
+    if [ "$mode" -eq "$SPI_BMODE" ]; then
+        echo "SPI boot mode detected."
+        echo "Rebooting..."
+        reboot -f
+        exit 0
+    fi
+
+    sleep 1
+done
