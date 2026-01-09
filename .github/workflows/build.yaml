@@ -17,6 +17,9 @@ jobs:
       matrix:
         defconfig:
           - adi_sc598_ezkit_defconfig
+        flavor:
+          - debug
+          - bootstrap
 
     steps:
       - name: Checkout br2-external
@@ -38,13 +41,14 @@ jobs:
           key: ${{ runner.os }}-ccache-${{ matrix.defconfig }}
           restore-keys: ${{ runner.os }}-ccache-
 
-      - name: Build image for ${{ matrix.defconfig }}
+      - name: Build image for ${{ matrix.defconfig }} with ${{ matrix.flavor }} configuration
         run: |
           cd buildroot
+          make distclean
           make BR2_EXTERNAL="${PWD}/.." ${{ matrix.defconfig }}
           support/kconfig/merge_config.sh .config \
             ../configs/buildroot.fragment \
-            ../configs/debug.fragment
+            ../configs/${{ matrix.flavor }}.fragment
           make -j$(nproc)
 
       - name: Fetch u-boot.gdb helper script
@@ -52,17 +56,16 @@ jobs:
           cd buildroot/output/images
           curl -L https://raw.githubusercontent.com/analogdevicesinc/documentation/refs/heads/main/docs/products/adsp/u-boot.gdb -o u-boot.gdb
 
-      - name: Upload Buildroot images for ${{ matrix.defconfig }}
-        if: success()
+      - name: Upload Buildroot images for ${{ matrix.defconfig }} with ${{ matrix.flavor }} configuration
         uses: actions/upload-artifact@v4
         with:
-          name: images-${{ matrix.defconfig }}
+          name: images-${{ matrix.flavor }}-${{ matrix.defconfig }}
           path: buildroot/output/images
 
       - name: Archive output images directory
         if: ${{ github.event_name == 'release' }}
         run: |
-          tar -cJvf images-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz \
+          tar -cJvf images-${{ matrix.flavor }}-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz \
             buildroot/output/images/
 
       - name: Upload release archive to release
@@ -70,5 +73,5 @@ jobs:
         if: ${{ github.event_name == 'release' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: images-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz
+          file: images-${{ matrix.flavor }}-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz
           tag: ${{ github.ref }}
