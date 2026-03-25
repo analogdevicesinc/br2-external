@@ -9,7 +9,7 @@
 #JESD204B_STATUS_SITE = https://github.com/analogdevicesinc/jesd-eye-scan-gtk.git
 #JESD204B_STATUS_SITE_METHOD = git
 
-JESD204B_STATUS_VERSION = 0.1
+JESD204B_STATUS_VERSION = 0.2
 JESD204B_STATUS_SITE = $(call github,analogdevicesinc,jesd-eye-scan-gtk,v$(JESD204B_STATUS_VERSION))
 
 JESD204B_STATUS_LICENSE = BSD
