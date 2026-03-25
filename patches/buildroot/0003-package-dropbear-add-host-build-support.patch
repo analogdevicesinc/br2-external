@@ -1,3 +1,15 @@
+diff --git a/package/Config.in.host b/package/Config.in.host
+index 5bb9894df1..a6ccf75b07 100644
+--- a/package/Config.in.host
++++ b/package/Config.in.host
+@@ -30,6 +30,7 @@
+ 	source "package/dos2unix/Config.in.host"
+ 	source "package/dosfstools/Config.in.host"
+ 	source "package/doxygen/Config.in.host"
++	source "package/dropbear/Config.in.host"
+ 	source "package/dracut/Config.in.host"
+ 	source "package/dtc/Config.in.host"
+ 	source "package/e2fsprogs/Config.in.host"
 diff --git a/package/dropbear/Config.in.host b/package/dropbear/Config.in.host
 new file mode 100644
 index 0000000000..57b263ae74
@@ -19,7 +31,7 @@ index 36eb7898ba..61051c314f 100644
 @@ -135,4 +135,9 @@ define DROPBEAR_INSTALL_TARGET_CMDS
  	ln -snf /var/run/dropbear $(TARGET_DIR)/etc/dropbear
  endef
- 
+
 +HOST_DROPBEAR_MAKE = \
 +	$(MAKE) \
 +	PROGRAMS="dropbearkey"
