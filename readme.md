@@ -21,6 +21,32 @@ support/kconfig/merge_config.sh .config \
     <ADI Configuration fragments>
 ```
 
+## Top-level Makefile
+
+A small wrapper at the repo root mirrors the in-tree workflow without having
+to `cd buildroot/` first:
+
+```sh
+make buildroot                   # clone & patch (skips if buildroot/ exists)
+make zynq_pluto_defconfig        # forwarded to Buildroot
+make -j$(nproc)                  # forwarded; BR2_EXTERNAL is set for you
+```
+
+Override the checkout source with `BUILDROOT_URL` / `BUILDROOT_VERSION`; the
+defaults point at the [ADI Buildroot fork](https://github.com/analogdevicesinc/buildroot)
+on `adi-2026.02-y`. `make buildroot-patch` re-applies any local patches and is
+idempotent — patches already present in the checkout are skipped via
+`git apply --check`.
+
+## Buildroot patches
+
+`patches/buildroot/` holds ADI-specific Buildroot changes (package fix-ups,
+kernel build glue, etc.). These are already merged into the ADI Buildroot
+fork the submodule points at, so they are normally no-ops at build time. They
+are kept here as an applicable set so the same image can be built against a
+stock upstream Buildroot checkout (via `BUILDROOT_URL` override) without
+manually carrying the patches.
+
 ## ADI Configuration Fragments
 
 - `configs/buildroot.fragment`
