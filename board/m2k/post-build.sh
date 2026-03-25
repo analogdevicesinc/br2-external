@@ -36,6 +36,11 @@ sed -e "s/#GCC_TRIPLE#/$GCC_TRIPLE/g" -e "s/#GCC_VERSION#/$GCC_VERSION/g" -e "s/
 
 rm -rf "${GENIMAGE_TMP}"
 
+# Create dummy license & versions files when not building the official image;
+# the real LICENSE.html is generated via 'make legal-info' + a post-processing script
+[ -f "$BOARD_DIR/VERSIONS" ] || touch "$BOARD_DIR/VERSIONS"
+[ -f "$BOARD_DIR/msd/LICENSE.html" ] || touch "$BOARD_DIR/msd/LICENSE.html"
+
 genimage                           \
 	--rootpath "${TARGET_DIR}"     \
 	--tmppath "${GENIMAGE_TMP}"    \

@@ -1,7 +1,7 @@
 #!/bin/sh
 # args from BR2_ROOTFS_POST_SCRIPT_ARGS
 # $2    board name
-. ${BR2_CONFIG}
+eval $(grep '^BR2_' ${BR2_CONFIG})
 set -e
 
 INSTALL=install
@@ -33,6 +33,11 @@ else
 fi
 
 sed -e "s/#GCC_TRIPLE#/$GCC_TRIPLE/g" -e "s/#GCC_VERSION#/$GCC_VERSION/g" -e "s/#BIN_VERSION#/$BIN_VERSION/g" ${BOARD_DIR}/index.html -e "s/#ROOTPASSWORD#/$ROOTPASSWD/g" > ${BOARD_DIR}/msd/index.html
+
+# Create dummy license & versions files when not building the official image;
+# the real LICENSE.html is generated via 'make legal-info' + a post-processing script
+[ -f "$BOARD_DIR/VERSIONS" ] || touch "$BOARD_DIR/VERSIONS"
+[ -f "$BOARD_DIR/msd/LICENSE.html" ] || touch "$BOARD_DIR/msd/LICENSE.html"
 
 rm -rf "${GENIMAGE_TMP}"
 
