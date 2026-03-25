@@ -27,20 +27,6 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Cache download directory
-        uses: actions/cache@v4
-        with:
-          path: ~/.buildroot-dl
-          key: ${{ runner.os }}-buildroot-dl-${{ matrix.defconfig }}
-          restore-keys: ${{ runner.os }}-buildroot-dl-
-
-      - name: Cache ccache directory
-        uses: actions/cache@v4
-        with:
-          path: ~/.buildroot-ccache
-          key: ${{ runner.os }}-ccache-${{ matrix.defconfig }}
-          restore-keys: ${{ runner.os }}-ccache-
-
       - name: Build image for ${{ matrix.defconfig }} with ${{ matrix.flavor }} configuration
         run: |
           cd buildroot
