@@ -1,0 +1,13 @@
+diff --git a/package/skeleton-init-sysv/skeleton/etc/fstab b/package/skeleton-init-sysv/skeleton/etc/fstab
+index 169054b74f..2b418a0eb6 100644
+--- a/package/skeleton-init-sysv/skeleton/etc/fstab
++++ b/package/skeleton-init-sysv/skeleton/etc/fstab
+@@ -1,7 +1,7 @@
+ # <file system>	<mount pt>	<type>	<options>	<dump>	<pass>
+ /dev/root	/		ext2	rw,noauto	0	1
+ proc		/proc		proc	defaults	0	0
+-devpts		/dev/pts	devpts	defaults,gid=5,mode=620,ptmxmode=0666	0	0
++devpts		/dev/pts	devpts	defaults,gid=5,mode=620	0	0
+ tmpfs		/dev/shm	tmpfs	mode=0777	0	0
+ tmpfs		/tmp		tmpfs	mode=1777	0	0
+ tmpfs		/run		tmpfs	mode=0755,nosuid,nodev	0	0
