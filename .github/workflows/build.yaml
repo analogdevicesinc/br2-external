@@ -23,7 +23,7 @@ jobs:
 
     steps:
       - name: Checkout br2-external
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           submodules: recursive
 
@@ -43,7 +43,7 @@ jobs:
           curl -L https://raw.githubusercontent.com/analogdevicesinc/documentation/refs/heads/main/docs/products/adsp/u-boot.gdb -o u-boot.gdb
 
       - name: Upload Buildroot images for ${{ matrix.defconfig }} with ${{ matrix.flavor }} configuration
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: images-${{ matrix.flavor }}-${{ matrix.defconfig }}
           path: buildroot/output/images
