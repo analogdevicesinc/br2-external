@@ -1,0 +1,23 @@
+menu "ADI packages"
+
+menu "Hardware handling"
+	source "$BR2_EXTERNAL_ADI_PATH/package/libad9361-iio/Config.in"
+	source "$BR2_EXTERNAL_ADI_PATH/package/libm2k/Config.in"
+	source "$BR2_EXTERNAL_ADI_PATH/package/libini/Config.in"
+endmenu
+
+menu "Tools and utilities"
+	source "$BR2_EXTERNAL_ADI_PATH/package/fru-tools/Config.in"
+	source "$BR2_EXTERNAL_ADI_PATH/package/poll_sysfs/Config.in"
+	source "$BR2_EXTERNAL_ADI_PATH/package/ad936x_ref_cal/Config.in"
+endmenu
+
+menu "JESD204B"
+	source "$BR2_EXTERNAL_ADI_PATH/package/jesd204b_status/Config.in"
+endmenu
+
+menu "Python modules"
+	source "$BR2_EXTERNAL_ADI_PATH/package/python-pygccxml/Config.in"
+endmenu
+
+endmenu
