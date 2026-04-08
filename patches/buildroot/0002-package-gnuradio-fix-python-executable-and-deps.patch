@@ -1,0 +1,33 @@
+diff --git a/package/gnuradio/Config.in b/package/gnuradio/Config.in
+index 51237e62b9..21e87720cc 100644
+--- a/package/gnuradio/Config.in
++++ b/package/gnuradio/Config.in
+@@ -10,6 +10,7 @@ comment "gnuradio needs a toolchain not affected by GCC bug 43744"
+ 
+ config BR2_PACKAGE_GNURADIO
+ 	bool "gnuradio"
++        select BR2_PACKAGE_PYTHON3_PACKAGING
+ 	depends on BR2_INSTALL_LIBSTDCPP
+ 	depends on !BR2_STATIC_LIBS
+ 	depends on BR2_TOOLCHAIN_HAS_THREADS_NPTL
+@@ -83,6 +84,7 @@ config BR2_PACKAGE_GNURADIO_PYTHON
+ 	select BR2_PACKAGE_PYTHON_NUMPY # runtime
+ 	select BR2_PACKAGE_PYTHON_PYBIND
+ 	select BR2_PACKAGE_PYTHON_SIX # runtime
++        select BR2_PACKAGE_PYTHON_PYBIND
+ 	help
+ 	  Enable python component
+ 
+diff --git a/package/gnuradio/gnuradio.mk b/package/gnuradio/gnuradio.mk
+index 8eb7778d99..064c6d7a16 100644
+--- a/package/gnuradio/gnuradio.mk
++++ b/package/gnuradio/gnuradio.mk
+@@ -20,7 +20,7 @@ GNURADIO_DEPENDENCIES = \
+ 	volk
+ 
+ GNURADIO_CONF_OPTS = \
+-	-DPYTHON_EXECUTABLE=$(HOST_DIR)/bin/python3 \
++	-DPYTHON_EXECUTABLE=$(HOST_DIR)/bin/python \
+ 	-DENABLE_DEFAULT=OFF \
+ 	-DENABLE_EXAMPLES=OFF \
+ 	-DENABLE_GNURADIO_RUNTIME=ON \
