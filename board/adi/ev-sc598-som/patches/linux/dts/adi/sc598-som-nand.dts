@@ -12,6 +12,34 @@
   compatible = "adi,sc598-som-nand", "adi,sc59x-64";
 };
 
+/*
+ * Clock configuration for faster SPI NAND performance.
+ *
+ * Default SPI clock sources (sclk0_0, oclk_0) are both 62.5 MHz, limiting
+ * SPI speed. Reconfigure oclk_0 to 250 MHz instead of using sclk0_0
+ * because sclk0_0 is shared by UARTs, I2C, timers, watchdog, and Ethernet.
+ *
+ *   CGU0_ODIV: 1000 MHz / 4 = 250 MHz (was / 16 = 62.5 MHz)
+ *   SPI_SEL: Use oclk_0 as SPI parent
+ *   EMMC_SEL: Switch eMMC to dclk_0_half (eMMC defaults to oclk_0, which
+ *             would break it at 250 MHz - "Internal clock never stabilised")
+ *
+ * time nanddump /dev/mtd4 -l 1048576 -f /dev/null
+ *   ~21 MHz (original): 0.24s (~4.4 MB/s)
+ *   62.5 MHz: 0.20s (~5.2 MB/s)
+ *   83.3 MHz: 0.19s (~5.5 MB/s)
+ *   125 MHz: probe failed (ID reads 0xffffffff)
+ */
+&clk {
+	assigned-clocks = <&clk ADSP_SC598_CLK_CGU0_ODIV>, <&clk ADSP_SC598_CLK_SPI_SEL>, <&clk ADSP_SC598_CLK_EMMC_SEL>;
+	assigned-clock-rates = <250000000>, <0>, <0>;
+	assigned-clock-parents = <0>, <&clk ADSP_SC598_CLK_CGU0_OCLK>, <&clk ADSP_SC598_CLK_DCLK0_HALF>;
+};
+
+&mmc0 {
+	status = "disabled";
+};
+
 &spi2 {
 	/delete-node/ is25lp01g@0;
 
@@ -20,7 +48,7 @@
 		#size-cells = <1>;
 		compatible = "spi-nand";
 		reg = <0>;
-		spi-max-frequency = <25000000>;
+		spi-max-frequency = <83000000>;
 		spi-rx-bus-width = <4>;
 		spi-tx-bus-width = <4>;
 
