@@ -46,11 +46,14 @@
 	som_flash: spi-nand@0 {
 		#address-cells = <1>;
 		#size-cells = <1>;
-		compatible = "spi-nand";
+		compatible = "micron,mt29f1g01abafd", "spi-nand";
 		reg = <0>;
 		spi-max-frequency = <83000000>;
 		spi-rx-bus-width = <4>;
 		spi-tx-bus-width = <4>;
+		nand-ecc-mode = "on-die";
+		nand-ecc-strength = <1>;
+		nand-ecc-step-size = <512>;
 
 		partitions {
 			compatible = "fixed-partitions";
