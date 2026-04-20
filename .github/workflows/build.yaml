@@ -23,6 +23,13 @@ jobs:
           - defconfig: adi_sc598_ezkit_defconfig
             name: sc598-som-ezkit-bootstrap
             fragments: ../configs/buildroot.fragment ../configs/bootstrap.fragment
+          # HTOL builds
+          - defconfig: adi_sc598_ezkit_defconfig
+            name: sc598-htol-debug
+            fragments: ../configs/buildroot.fragment ../configs/htol.fragment ../configs/debug.fragment
+          - defconfig: adi_sc598_ezkit_defconfig
+            name: sc598-htol-bootstrap
+            fragments: ../configs/buildroot.fragment ../configs/htol.fragment ../configs/bootstrap.fragment
 
     steps:
       - name: Checkout br2-external
