@@ -15,11 +15,21 @@ jobs:
 
     strategy:
       matrix:
-        defconfig:
-          - adi_sc598_ezkit_defconfig
-        flavor:
-          - debug
-          - bootstrap
+        include:
+          # SC598 SoM EZ-KIT builds
+          - defconfig: adi_sc598_ezkit_defconfig
+            name: sc598-som-ezkit-debug
+            fragments: ../configs/buildroot.fragment ../configs/debug.fragment
+          - defconfig: adi_sc598_ezkit_defconfig
+            name: sc598-som-ezkit-bootstrap
+            fragments: ../configs/buildroot.fragment ../configs/bootstrap.fragment
+          # HTOL builds
+          - defconfig: adi_sc598_ezkit_defconfig
+            name: sc598-htol-debug
+            fragments: ../configs/buildroot.fragment ../configs/htol.fragment ../configs/debug.fragment
+          - defconfig: adi_sc598_ezkit_defconfig
+            name: sc598-htol-bootstrap
+            fragments: ../configs/buildroot.fragment ../configs/htol.fragment ../configs/bootstrap.fragment
 
     steps:
       - name: Checkout br2-external
@@ -27,26 +37,24 @@ jobs:
         with:
           submodules: recursive
 
-      - name: Build image for ${{ matrix.defconfig }} with ${{ matrix.flavor }} configuration
+      - name: Build ${{ matrix.name }}
         run: |
           cd buildroot
           make distclean
           make BR2_EXTERNAL="${PWD}/.." ${{ matrix.defconfig }}
-          support/kconfig/merge_config.sh .config \
-            ../configs/buildroot.fragment \
-            ../configs/${{ matrix.flavor }}.fragment
+          support/kconfig/merge_config.sh .config ${{ matrix.fragments }}
           make -j$(nproc)
 
-      - name: Upload Buildroot images for ${{ matrix.defconfig }} with ${{ matrix.flavor }} configuration
+      - name: Upload ${{ matrix.name }} images
         uses: actions/upload-artifact@v6
         with:
-          name: images-${{ matrix.flavor }}-${{ matrix.defconfig }}
+          name: images-${{ matrix.name }}
           path: buildroot/output/images
 
       - name: Archive output images directory
         if: ${{ github.event_name == 'release' }}
         run: |
-          tar -cJvf images-${{ matrix.flavor }}-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz \
+          tar -cJvf images-${{ matrix.name }}-${{ github.event.release.tag_name }}.tar.xz \
             buildroot/output/images/
 
       - name: Upload release archive to release
@@ -54,5 +62,5 @@ jobs:
         if: ${{ github.event_name == 'release' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: images-${{ matrix.flavor }}-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz
+          file: images-${{ matrix.name }}-${{ github.event.release.tag_name }}.tar.xz
           tag: ${{ github.ref }}
