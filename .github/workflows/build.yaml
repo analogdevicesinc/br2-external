@@ -5,6 +5,8 @@ on:
   pull_request:
   release:
     types: [published]
+  schedule:
+    - cron: '0 4 * * *' # 04:00 UTC (05:00/06:00 CET/CEST, 23:00/00:00 EST/EDT)
 
 env:
   BR2_DL_DIR: ~/.buildroot-dl
