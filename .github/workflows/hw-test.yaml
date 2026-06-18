@@ -13,48 +13,40 @@ permissions:
 jobs:
   hardware-test:
     if: github.event.workflow_run.conclusion == 'success'
-    runs-on:
-      - self-hosted
-      - labgrid
-
+    runs-on: ${{ vars.RUNNER_HW_TEST != '' && fromJSON(vars.RUNNER_HW_TEST) || 'ubuntu-latest' }}
     env:
-      LABGRID_COORDINATOR: ${{ secrets.LABGRID_COORDINATOR }}
-    steps:
-      - name: Download Buildroot images for hardware test
-        uses: actions/download-artifact@v6
-        with:
-          name: images-bootstrap-adi_sc598_ezkit_defconfig
-          path: output/images
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+      LG_COORDINATOR: ${{ secrets.LG_COORDINATOR }}
 
+    steps:
       - name: Checkout hw-test
         uses: actions/checkout@v6
         with:
           repository: analogdevicesinc/hw-test
           ref: add-smoke2
-          path: hw-test
 
       - name: Run smoke hardware test
-        uses: ./hw-test/tests/adsp
+        uses: ./run-test
         with:
-          name: adsp/smoke
           set: >
-            [{"name":"adsp/smoke","target":"MUN-01-SC598_EZKIT-01"}]
-          ssh-hosts: ${{ secrets.HW_TEST_SSH_HOSTS }}
+            {
+              "name": "adsp/smoke",
+              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+            }
 
       - name: Run U-Boot hardware test
-        uses: ./hw-test/tests/adsp
+        uses: ./run-test
         with:
-          name: adsp/u-boot
           set: >
-            [{"name":"adsp/u-boot","target":"MUN-01-SC598_EZKIT-01"}]
-          ssh-hosts: ${{ secrets.HW_TEST_SSH_HOSTS }}
+            {
+              "name":"adsp/u-boot",
+              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+            }
 
       - name: Run bootstrap hardware test
-        uses: ./hw-test/tests/adsp
+        uses: ./run-test
         with:
-          name: adsp/bootstrap
           set: >
-            [{"name":"adsp/bootstrap","target":"MUN-01-SC598_EZKIT-01"}]
-          ssh-hosts: ${{ secrets.HW_TEST_SSH_HOSTS }}
+            {
+              "name":"adsp/bootstrap",
+              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+            }
