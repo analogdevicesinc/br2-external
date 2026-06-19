@@ -1,0 +1,48 @@
+name: Build rootfs
+
+on:
+  push:
+    branches:
+      - 'staging/test-libiio-v1'
+  workflow_dispatch:
+
+env:
+  BR2_DL_DIR: ~/.buildroot-dl
+
+jobs:
+  rootfs:
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        defconfig:
+          - microblaze_adi_rootfs_defconfig
+
+    steps:
+      - name: Install build dependencies
+        run: |
+          sudo apt-get -qq update
+          sudo apt-get install -y --no-install-recommends \
+            build-essential gcc g++ make libncurses-dev \
+            bc cpio file rsync unzip wget python3 \
+            git ca-certificates zlib1g-dev
+
+      - name: Checkout br2-external
+        uses: actions/checkout@v6
+        with:
+          submodules: recursive
+          clean: true
+
+      - name: Build rootfs for ${{ matrix.defconfig }}
+        run: |
+          cd buildroot
+          rm -rf output
+          make BR2_EXTERNAL="${PWD}/.." ${{ matrix.defconfig }}
+          make -j$(nproc)
+
+      - name: Upload rootfs for ${{ matrix.defconfig }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: rootfs-${{ matrix.defconfig }}
+          path: buildroot/output/images/rootfs.cpio.gz
