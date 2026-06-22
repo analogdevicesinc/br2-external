@@ -21,7 +21,7 @@ RUN bash ./gh-actions-runner.sh ; rm ./gh-actions-runner.sh
 # https://buildroot.org/downloads/manual/manual.html#requirement-mandatory
 RUN zypper install -y --no-recommends gcc gcc-c++ make glibc-devel glibc-gconv-modules-extra \
     libstdc++-devel binutils ccache git wget rsync bc unzip cpio file which \
-    sed diffutils bash patch gzip bzip2 perl tar findutils gawk ncurses-devel
+    sed diffutils bash patch gzip bzip2 perl tar findutils gawk ncurses-devel zlib-devel
 
 RUN mkdir -p /usr/local/bin
 WORKDIR /usr/local/bin
