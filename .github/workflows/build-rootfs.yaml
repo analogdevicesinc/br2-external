@@ -13,12 +13,6 @@ jobs:
   rootfs:
     runs-on: ubuntu-latest
 
-    strategy:
-      fail-fast: false
-      matrix:
-        defconfig:
-          - microblaze_adi_rootfs_defconfig
-
     steps:
       - name: Install build dependencies
         run: |
@@ -34,15 +28,15 @@ jobs:
           submodules: recursive
           clean: true
 
-      - name: Build rootfs for ${{ matrix.defconfig }}
+      - name: Build rootfs
         run: |
           cd buildroot
           rm -rf output
-          make BR2_EXTERNAL="${PWD}/.." ${{ matrix.defconfig }}
+          make BR2_EXTERNAL="${PWD}/.." microblaze_adi_rootfs_defconfig
           make -j$(nproc)
 
-      - name: Upload rootfs for ${{ matrix.defconfig }}
+      - name: Upload rootfs
         uses: actions/upload-artifact@v6
         with:
-          name: rootfs-${{ matrix.defconfig }}
+          name: rootfs-microblaze
           path: buildroot/output/images/rootfs.cpio.gz
