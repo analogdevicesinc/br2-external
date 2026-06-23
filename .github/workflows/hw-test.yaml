@@ -1,9 +1,7 @@
 name: Hardware Test
 
 on:
-  workflow_run:
-    workflows: ["Build ADI artifacts"]
-    types: [completed]
+  push:
 
 permissions:
   actions: read
@@ -12,7 +10,6 @@ permissions:
 
 jobs:
   hardware-test:
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ${{ vars.RUNNER_HW_TEST != '' && fromJSON(vars.RUNNER_HW_TEST) || 'ubuntu-latest' }}
     env:
       LG_COORDINATOR: ${{ secrets.LG_COORDINATOR }}
@@ -22,7 +19,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: analogdevicesinc/hw-test
-          ref: add-smoke2
+          ref: test-action
 
       - name: Run smoke hardware test
         uses: ./run-test
@@ -30,7 +27,7 @@ jobs:
           set: >
             {
               "name": "adsp/smoke",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+              "workflow_run_url":"https://api.github.com/repos/analogdevicesinc/br2-external/actions/runs/27766740938"
             }
 
       - name: Run U-Boot hardware test
@@ -39,7 +36,7 @@ jobs:
           set: >
             {
               "name":"adsp/u-boot",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+              "workflow_run_url":"https://api.github.com/repos/analogdevicesinc/br2-external/actions/runs/27766740938"
             }
 
       - name: Run bootstrap hardware test
@@ -48,5 +45,5 @@ jobs:
           set: >
             {
               "name":"adsp/bootstrap",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+              "workflow_run_url":"https://api.github.com/repos/analogdevicesinc/br2-external/actions/runs/27766740938"
             }
