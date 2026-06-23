@@ -36,6 +36,7 @@ jobs:
       - name: Build image for ${{ matrix.defconfig }}${{ matrix.flavor && format(' with {0} configuration', matrix.flavor) || '' }}
         run: |
           cd buildroot
+          umask 022
           make distclean
           make BR2_EXTERNAL="${PWD}/.." ${{ matrix.defconfig }}
           if [ -n "${{ matrix.flavor }}" ]; then
