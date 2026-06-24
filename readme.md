@@ -3,7 +3,7 @@
 This [br2-external](https://buildroot.org/downloads/manual/manual.html#outside-br-custom)
 contains Buildroot configuration specific to ADI that cannot be mainlined.
 Generic support for ADI evaluation boards is implemented in the
-[ADI Buildroot tree](github.com/analogdevicesinc/buildroot).
+[ADI Buildroot tree](https://github.com/analogdevicesinc/buildroot).
 
 ## Getting Started
 
