@@ -22,7 +22,7 @@ jobs:
         uses: actions/checkout@v6
         with:
           repository: analogdevicesinc/hw-test
-          ref: add-smoke2
+          ref: main
 
       - name: Run smoke hardware test
         uses: ./run-test
