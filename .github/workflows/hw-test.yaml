@@ -30,7 +30,8 @@ jobs:
           set: >
             {
               "name": "adsp/smoke",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+              "labgrid_place":"MUN-01-SC598_EZKIT-01",
+              "workflow_run_url": "${{ github.event.workflow_run.url }}"
             }
 
       - name: Run U-Boot hardware test
@@ -39,7 +40,8 @@ jobs:
           set: >
             {
               "name":"adsp/u-boot",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+              "labgrid_place":"MUN-01-SC598_EZKIT-01",
+              "workflow_run_url": "${{ github.event.workflow_run.url }}"
             }
 
       - name: Run bootstrap hardware test
@@ -48,5 +50,6 @@ jobs:
           set: >
             {
               "name":"adsp/bootstrap",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01"
+              "labgrid_place":"MUN-01-SC598_EZKIT-01",
+              "workflow_run_url": "${{ github.event.workflow_run.url }}"
             }
