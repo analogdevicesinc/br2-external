@@ -3,7 +3,7 @@
 # fru-tools
 #
 ################################################################################
-FRU_TOOLS_VERSION = 0.8.1.7
+FRU_TOOLS_VERSION = 0.9.0
 FRU_TOOLS_SITE = $(call github,analogdevicesinc,fru_tools,v$(FRU_TOOLS_VERSION))
 FRU_TOOLS_INSTALL_STAGING = YES
 FRU_TOOLS_LICENSE = GPL-2.0
