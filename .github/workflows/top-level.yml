@@ -1,0 +1,29 @@
+name: Build and Hardware Test
+
+on:
+  workflow_dispatch:
+  pull_request:
+  release:
+    types: [published]
+  schedule:
+    - cron: '0 4 * * *' # 04:00 UTC (05:00/06:00 CET/CEST, 23:00/00:00 EST/EDT)
+
+jobs:
+  build:
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+      cancel-in-progress: true
+    uses: ./.github/workflows/build.yaml
+    secrets: inherit
+    permissions:
+      contents: write
+
+  hardware-test:
+    uses: ./.github/workflows/hw-test.yaml
+    needs: [build]
+    if: ${{ github.event_name != 'schedule' && github.event_name != 'release' }}
+    secrets: inherit
+    permissions:
+      actions: read
+      contents: read
+      id-token: write

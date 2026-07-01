@@ -1,9 +1,7 @@
 name: Hardware Test
 
 on:
-  workflow_run:
-    workflows: ["Build ADI artifacts"]
-    types: [completed]
+  workflow_call:
 
 permissions:
   actions: read
@@ -12,7 +10,6 @@ permissions:
 
 jobs:
   hardware-test:
-    if: github.event.workflow_run.conclusion == 'success'
     runs-on: ${{ vars.RUNNER_HW_TEST != '' && fromJSON(vars.RUNNER_HW_TEST) || 'ubuntu-latest' }}
     env:
       LG_COORDINATOR: ${{ secrets.LG_COORDINATOR }}
@@ -29,9 +26,7 @@ jobs:
         with:
           set: >
             {
-              "name": "adsp/smoke",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01",
-              "workflow_run_url": "${{ github.event.workflow_run.url }}"
+              "name": "adsp/smoke"
             }
 
       - name: Run U-Boot hardware test
@@ -39,9 +34,7 @@ jobs:
         with:
           set: >
             {
-              "name":"adsp/u-boot",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01",
-              "workflow_run_url": "${{ github.event.workflow_run.url }}"
+              "name": "adsp/u-boot"
             }
 
       - name: Run bootstrap hardware test
@@ -49,7 +42,5 @@ jobs:
         with:
           set: >
             {
-              "name":"adsp/bootstrap",
-              "labgrid_place":"MUN-01-SC598_EZKIT-01",
-              "workflow_run_url": "${{ github.event.workflow_run.url }}"
+              "name": "adsp/bootstrap"
             }
