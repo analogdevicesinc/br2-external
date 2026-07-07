@@ -19,7 +19,9 @@ jobs:
       matrix:
         include:
           - defconfig: adi_sc598_ezkit_defconfig
-            flavor: debug
+            flavor:
+              - debug
+              - bootstrap
           - defconfig: adi_sc598_ezkit_defconfig
             flavor: bootstrap
           - defconfig: zynq_pluto_defconfig
