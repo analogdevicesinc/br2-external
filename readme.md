@@ -5,7 +5,9 @@ contains Buildroot configuration specific to ADI that cannot be mainlined.
 Generic support for ADI evaluation boards is implemented in the
 [ADI Buildroot tree](https://github.com/analogdevicesinc/buildroot).
 
-## Getting Started
+## ADSP
+
+### Getting Started
 
 ```sh
 git clone --recurse-submodules https://github.com/analogdevicesinc/br2-external.git
@@ -22,7 +24,47 @@ support/kconfig/merge_config.sh .config \
     <ADI Configuration fragments>
 ```
 
-## Top-level Makefile
+### ADI Configuration Fragments
+
+- `configs/buildroot.fragment`
+    - Configure Buildroot to speed up builds
+- `configs/debug.fragment`
+    - Enable debugging in U-Boot and the kernel
+    - Build the kernel image with an embedded root filesystem to reduce
+      complexity around writing and mounting a root filesystem from storage
+- `configs/bootstrap.fragment`  
+    - Enable a minimal bootstrap / installer image.  
+    - Includes only the tools required to program boot media.
+
+### Example Builds
+
+Debug Image:
+
+```sh
+make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
+support/kconfig/merge_config.sh .config \
+    ../configs/buildroot.fragment \
+    ../configs/debug.fragment
+make -j$(nproc)
+```
+
+Bootstrap Image:
+
+```sh
+make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
+support/kconfig/merge_config.sh .config \
+    ../configs/buildroot.fragment \
+    ../configs/bootstrap.fragment
+make -j$(nproc)
+```
+
+## Xilinx
+
+The Xilinx based targets are built in CI/CD using the ADSP approach documented
+above. Additionally, a non-standard ADI specific approach is also maintained
+and documented below.
+
+### Top-level Makefile
 
 A small wrapper at the repo root mirrors the in-tree workflow without having
 to `cd buildroot/` first:
@@ -43,7 +85,7 @@ Be mindful of your environment variables, they may overwrite variables and
 affect the build. You can unset a single variable like `U` by suffixing with
 `env -u U make`.
 
-## Buildroot patches
+### Buildroot patches
 
 `patches/buildroot/` holds ADI-specific Buildroot changes (package fix-ups,
 kernel build glue, etc.). These are already merged into the ADI Buildroot
@@ -51,37 +93,3 @@ fork the submodule points at, so they are normally no-ops at build time. They
 are kept here as an applicable set so the same image can be built against a
 stock upstream Buildroot checkout (via `BUILDROOT_URL` override) without
 manually carrying the patches.
-
-## ADI Configuration Fragments
-
-- `configs/buildroot.fragment`
-    - Configure Buildroot to speed up builds
-- `configs/debug.fragment`
-    - Enable debugging in U-Boot and the kernel
-    - Build the kernel image with an embedded root filesystem to reduce
-      complexity around writing and mounting a root filesystem from storage
-- `configs/bootstrap.fragment`  
-    - Enable a minimal bootstrap / installer image.  
-    - Includes only the tools required to program boot media.
-
-## Example Builds
-
-### Debug Image
-
-```sh
-make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
-support/kconfig/merge_config.sh .config \
-    ../configs/buildroot.fragment \
-    ../configs/debug.fragment
-make -j$(nproc)
-```
-
-### Bootstrap Image
-
-```sh
-make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
-support/kconfig/merge_config.sh .config \
-    ../configs/buildroot.fragment \
-    ../configs/bootstrap.fragment
-make -j$(nproc)
-```
