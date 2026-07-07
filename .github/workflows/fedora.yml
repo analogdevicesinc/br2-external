@@ -1,0 +1,45 @@
+name: Build aarch64 Fedora root filesystem
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  build-rootfs:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v4
+
+      - name: Install mkosi
+        run: pipx install git+https://github.com/systemd/mkosi.git
+
+      - name: Install host dependencies
+        run: |
+          sudo apt-get update -q
+          sudo apt-get install -y dnf rpm bubblewrap
+
+      - name: Build rootfs
+        run: sudo -E $(which mkosi) -C ci build
+
+      - name: Upload rootfs
+        uses: actions/upload-artifact@v6
+        with:
+          name: adsp-sc598-rootfs
+          path: ci/mkosi.output/adsp-sc598-rootfs.tar.zst
+          retention-days: 30
+
+      - name: Upload rootfs to release
+        if: github.event_name == 'release'
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ci/mkosi.output/adsp-sc598-rootfs.tar.zst
+          asset_name: adsp-sc598-rootfs-${{ github.event.release.tag_name }}.tar.zst
+          tag: ${{ github.ref }}
