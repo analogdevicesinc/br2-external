@@ -33,6 +33,12 @@ jobs:
     permissions:
       contents: write
 
+  build-rootfs:
+    uses: ./.github/workflows/fedora.yml
+    secrets: inherit
+    permissions:
+      contents: write
+
   hardware-test:
     uses: ./.github/workflows/hw-test.yml
     needs: [build]
