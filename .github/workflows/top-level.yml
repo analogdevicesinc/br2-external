@@ -13,7 +13,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
+  build-buildroot:
     strategy:
       fail-fast: false
       matrix:
@@ -29,13 +29,17 @@ jobs:
     with:
       defconfig: ${{ matrix.defconfig }}
       flavor: ${{ matrix.flavor }}
-    secrets: inherit
+    permissions:
+      contents: write
+
+  build-mkosi-fedora:
+    uses: ./.github/workflows/fedora.yml
     permissions:
       contents: write
 
   hardware-test:
     uses: ./.github/workflows/hw-test.yml
-    needs: [build]
+    needs: [build-buildroot]
     if: ${{ github.event_name != 'schedule' && github.event_name != 'release' }}
     secrets: inherit
     permissions:
@@ -44,7 +48,7 @@ jobs:
       id-token: write
 
   deploy_cloudsmith:
-    needs: [build]
+    needs: [build-buildroot]
     if: ${{ github.event_name != 'release' && !cancelled() }}
     uses: analogdevicesinc/linux/.github/workflows/upload-to-cloudsmith.yml@ci
     secrets:
