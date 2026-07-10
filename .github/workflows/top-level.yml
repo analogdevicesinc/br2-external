@@ -8,12 +8,27 @@ on:
   schedule:
     - cron: '0 4 * * *' # 04:00 UTC (05:00/06:00 CET/CEST, 23:00/00:00 EST/EDT)
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
+  cancel-in-progress: true
+
 jobs:
   build:
-    concurrency:
-      group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
-      cancel-in-progress: true
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - defconfig: adi_sc598_ezkit_defconfig
+            flavor: debug
+          - defconfig: adi_sc598_ezkit_defconfig
+            flavor: bootstrap
+          - defconfig: zynq_pluto_defconfig
+          - defconfig: zynq_m2k_defconfig
+          - defconfig: microblaze_adi_rootfs_defconfig
     uses: ./.github/workflows/build.yaml
+    with:
+      defconfig: ${{ matrix.defconfig }}
+      flavor: ${{ matrix.flavor || 'default' }}
     secrets: inherit
     permissions:
       contents: write

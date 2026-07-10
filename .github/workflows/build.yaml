@@ -2,7 +2,25 @@ name: Build ADI artifacts
 
 on:
   workflow_dispatch:
+    inputs:
+      defconfig:
+        description: Buildroot defconfig
+        required: true
+        type: string
+      flavor:
+        description: Configuration flavor
+        required: false
+        type: string
+        default: 'default'
   workflow_call:
+    inputs:
+      defconfig:
+        required: true
+        type: string
+      flavor:
+        required: false
+        type: string
+        default: 'default'
 
 env:
   BR2_DL_DIR: ~/.buildroot-dl
@@ -13,34 +31,22 @@ jobs:
     permissions:
       contents: write
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - defconfig: adi_sc598_ezkit_defconfig
-            flavor: debug
-          - defconfig: adi_sc598_ezkit_defconfig
-            flavor: bootstrap
-          - defconfig: zynq_pluto_defconfig
-          - defconfig: zynq_m2k_defconfig
-          - defconfig: microblaze_adi_rootfs_defconfig
-
     steps:
       - name: Checkout br2-external
         uses: actions/checkout@v6
         with:
           submodules: recursive
 
-      - name: Build image for ${{ matrix.defconfig }}${{ matrix.flavor && format(' with {0} configuration', matrix.flavor) || '' }}
+      - name: Build image
         run: |
           cd buildroot
           umask 022
           make distclean
-          make BR2_EXTERNAL="${PWD}/.." ${{ matrix.defconfig }}
-          if [ -n "${{ matrix.flavor }}" ]; then
+          make BR2_EXTERNAL="${PWD}/.." ${{ inputs.defconfig }}
+          if [ "${{ inputs.flavor }}" != "default" ]; then
             support/kconfig/merge_config.sh .config \
               ../configs/buildroot.fragment \
-              ../configs/${{ matrix.flavor }}.fragment
+              ../configs/${{ inputs.flavor }}.fragment
           fi
           make -j$(nproc)
 
@@ -97,7 +103,7 @@ jobs:
 
       - name: Prepare image names
         run: |
-          image_name="${{ matrix.flavor || 'default' }}-${{ matrix.defconfig }}"
+          image_name="${{ inputs.flavor }}-${{ inputs.defconfig }}"
 
           image_full_name="$image_name"
           [[ "${{ github.event_name }}" == "release" ]] && image_full_name=${image_full_name}-${{ github.event.release.tag_name }}
@@ -106,7 +112,7 @@ jobs:
           echo "image_name=$image_name" >> "$GITHUB_ENV"
           echo "image_full_name=$image_full_name" >> "$GITHUB_ENV"
 
-      - name: Upload Buildroot images for ${{ matrix.defconfig }} with ${{ matrix.flavor }} configuration
+      - name: Upload Buildroot images
         uses: actions/upload-artifact@v6
         with:
           name: ${{ env.image_name }}
