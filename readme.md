@@ -39,6 +39,10 @@ on `adi-2026.02-y`. `make buildroot-patch` re-applies any local patches and is
 idempotent — patches already present in the checkout are skipped via
 `git apply --check`.
 
+Be mindful of your environment variables, they may overwrite variables and
+affect the build. You can unset a single variable like `U` by suffixing with
+`env -u U make`.
+
 ## Buildroot patches
 
 `patches/buildroot/` holds ADI-specific Buildroot changes (package fix-ups,
