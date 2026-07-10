@@ -103,7 +103,7 @@ jobs:
 
       - name: Prepare image names
         run: |
-          image_name="${{ inputs.flavor }}-${{ inputs.defconfig }}"
+          image_name="${{ inputs.defconfig }}-${{ inputs.flavor }}"
 
           image_full_name="$image_name"
           [[ "${{ github.event_name }}" == "release" ]] && image_full_name=${image_full_name}-${{ github.event.release.tag_name }}
