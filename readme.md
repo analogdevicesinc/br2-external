@@ -10,6 +10,7 @@ Generic support for ADI evaluation boards is implemented in the
 ```sh
 git clone --recurse-submodules https://github.com/analogdevicesinc/br2-external.git
 cd br2-external/buildroot
+# build Buildroot configuration for adi_sc598_ezkit
 make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
 ```
 
@@ -28,7 +29,7 @@ to `cd buildroot/` first:
 
 ```sh
 make buildroot                   # clone & patch (skips if buildroot/ exists)
-make zynq_pluto_defconfig        # forwarded to Buildroot
+make zynq_pluto_defconfig        # from ./configs and forwarded to Buildroot
 make -j$(nproc)                  # forwarded; BR2_EXTERNAL is set for you
 ```
 
