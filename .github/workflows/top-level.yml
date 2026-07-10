@@ -25,7 +25,7 @@ jobs:
           - defconfig: zynq_pluto_defconfig
           - defconfig: zynq_m2k_defconfig
           - defconfig: microblaze_adi_rootfs_defconfig
-    uses: ./.github/workflows/build.yaml
+    uses: ./.github/workflows/build.yml
     with:
       defconfig: ${{ matrix.defconfig }}
       flavor: ${{ matrix.flavor || 'default' }}
@@ -34,7 +34,7 @@ jobs:
       contents: write
 
   hardware-test:
-    uses: ./.github/workflows/hw-test.yaml
+    uses: ./.github/workflows/hw-test.yml
     needs: [build]
     if: ${{ github.event_name != 'schedule' && github.event_name != 'release' }}
     secrets: inherit
