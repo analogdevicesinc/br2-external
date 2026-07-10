@@ -10,6 +10,8 @@ env:
 jobs:
   build:
     runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
+    permissions:
+      contents: write
 
     strategy:
       fail-fast: false
@@ -42,22 +44,83 @@ jobs:
           fi
           make -j$(nproc)
 
+      - name: Prepare SBOM tools
+        run: |
+          command -v syft || curl -sSfL https://get.anchore.io/syft | sh -s -- -b ~/.local/bin
+          command -v grype || curl -sSfL https://get.anchore.io/grype | sh -s -- -b ~/.local/bin
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Run SBOM tools
+        run: |
+          [[ "${{ runner.debug }}" == "1" ]] && set -x
+          image_path="buildroot/output/images"
+          image_path=$(realpath "$image_path")
+
+          run_sbom_tools () {
+            pushd "$1"
+            syft --from file -o cyclonedx-json -o table "$2/rootfs.tar" > .sbom
+            head -n 1 .sbom > "$2/sbom.json"
+
+            # The CVE check intent is immediate feedback,
+            # the results are considered 'expired' right after the check.
+            # Continuous monitoring the SBOM is required.
+            # We store just for illustrative and sanity purposes.
+            grype db update
+            grype -o json -o table \
+                  --sort-by severity \
+                  sbom:"$2/sbom.json" > .cves || cves_ret=$?
+            head -n 1 .cves > "$2/cves.json"
+
+            popd
+            return $cves_ret
+          }
+
+          assert_sbom() {
+            pushd "$1"
+            echo "CVEs:"$'\n'\`\`\`$'\n'"$(tail -n +2 .cves)"$'\n'"\`\`\`" >> $GITHUB_STEP_SUMMARY
+            echo "SBOM:"$'\n'\`\`\`$'\n'"$(tail -n +2 .sbom)"$'\n'"\`\`\`" >> $GITHUB_STEP_SUMMARY
+
+            type=
+            tail -n +2 .cves | grep Medium && { type=warning ; level=Medium ;}
+            tail -n +2 .cves | grep High && { type=error ; level=High ;}
+            tail -n +2 .cves | grep Critical && { type=error ; level=Critical ;}
+            [ -n "$type" ] && echo "::$type ::assert_cves: CVE of level $level detected."
+
+            popd ; rm -r "$1"
+            return "$2"
+          }
+
+          _sbom=$(mktemp -d)
+          run_sbom_tools "$_sbom" "$image_path" && \
+            assert_sbom "$_sbom" "$?" || \
+            assert_sbom "$_sbom" "$?"
+
+      - name: Prepare image names
+        run: |
+          image_name="${{ matrix.flavor || 'default' }}-${{ matrix.defconfig }}"
+
+          image_full_name="$image_name"
+          [[ "${{ github.event_name }}" == "release" ]] && image_full_name=${image_full_name}-${{ github.event.release.tag_name }}
+          image_full_name=${image_full_name}.tar.xz
+
+          echo "image_name=$image_name" >> "$GITHUB_ENV"
+          echo "image_full_name=$image_full_name" >> "$GITHUB_ENV"
+
       - name: Upload Buildroot images for ${{ matrix.defconfig }} with ${{ matrix.flavor }} configuration
         uses: actions/upload-artifact@v6
         with:
-          name: images-${{ matrix.flavor || 'default' }}-${{ matrix.defconfig }}
+          name: ${{ env.image_name }}
           path: buildroot/output/images
 
       - name: Archive output images directory
         if: ${{ github.event_name == 'release' }}
         run: |
-          tar -cJvf images-${{ matrix.flavor || 'default' }}-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz \
-            buildroot/output/images/
+          tar -cJvf "${image_full_name}" buildroot/output/images/
 
       - name: Upload release archive to release
         uses: svenstaro/upload-release-action@v2
         if: ${{ github.event_name == 'release' }}
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: images-${{ matrix.flavor || 'default' }}-${{ matrix.defconfig }}-${{ github.event.release.tag_name }}.tar.xz
+          file: ${{ env.image_full_name }}
           tag: ${{ github.ref }}
