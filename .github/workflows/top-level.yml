@@ -56,4 +56,4 @@ jobs:
       actions: read
     with:
       artifacts: >
-        *_defconfig
+        *_defconfig*
