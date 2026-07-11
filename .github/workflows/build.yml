@@ -11,7 +11,7 @@ on:
         description: Configuration flavor
         required: false
         type: string
-        default: 'default'
+        default: ''
   workflow_call:
     inputs:
       defconfig:
@@ -20,7 +20,7 @@ on:
       flavor:
         required: false
         type: string
-        default: 'default'
+        default: ''
 
 env:
   BR2_DL_DIR: ~/.buildroot-dl
@@ -43,10 +43,10 @@ jobs:
           umask 022
           make distclean
           make BR2_EXTERNAL="${PWD}/.." ${{ inputs.defconfig }}
-          if [ "${{ inputs.flavor }}" != "default" ]; then
+          if [ -n "${{ inputs.flavor }}" ]; then
             support/kconfig/merge_config.sh .config \
-              ../configs/buildroot.fragment \
-              ../configs/${{ inputs.flavor }}.fragment
+              "../configs/buildroot.fragment" \
+              "../configs/${{ inputs.flavor }}.fragment"
           fi
           make -j$(nproc)
 
@@ -103,7 +103,8 @@ jobs:
 
       - name: Prepare image names
         run: |
-          image_name="${{ inputs.defconfig }}-${{ inputs.flavor }}"
+          image_name="${{ inputs.defconfig }}"
+          [ -z "${{ inputs.flavor }}" ] || image_name="${image_name}-${{ inputs.flavor }}"
 
           image_full_name="$image_name"
           [[ "${{ github.event_name }}" == "release" ]] && image_full_name=${image_full_name}-${{ github.event.release.tag_name }}

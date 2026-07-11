@@ -28,7 +28,7 @@ jobs:
     uses: ./.github/workflows/build.yml
     with:
       defconfig: ${{ matrix.defconfig }}
-      flavor: ${{ matrix.flavor || 'default' }}
+      flavor: ${{ matrix.flavor }}
     secrets: inherit
     permissions:
       contents: write
