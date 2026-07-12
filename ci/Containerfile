@@ -23,6 +23,10 @@ RUN zypper install -y --no-recommends gcc gcc-c++ make glibc-devel glibc-gconv-m
     libstdc++-devel binutils ccache git wget rsync bc unzip cpio file which \
     sed diffutils bash patch gzip bzip2 perl tar findutils gawk ncurses-devel zlib-devel
 
+# For utils/generate-cyclonedx
+RUN zypper install -y --no-recommends \
+    python313
+
 RUN mkdir -p /usr/local/bin
 WORKDIR /usr/local/bin
 ADD ${entrypoint_sh} .
