@@ -1,0 +1,251 @@
+name: LLM Agent
+run-name: LLM run ${{ inputs.ref || github.ref }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: "The branch, tag, PR number, or SHA to checkout"
+        required: false
+        type: string
+      prompt:
+        description: "Prompt to use, overwrites the default"
+        required: false
+        type: string
+        default: ""
+      prompt-extra:
+        description: "Extra prompt to concatenate"
+        required: false
+        type: string
+        default: ""
+      model:
+        description: "Model size"
+        type: choice
+        default: medium
+        options:
+          - small
+          - medium
+          - large
+      strategy:
+        description: "Review strategy"
+        type: choice
+        default: commit
+        options:
+          - commit
+          - files
+  workflow_call:
+    inputs:
+      ref:
+        required: false
+        type: string
+        default: ${{ github.ref }}
+      prompt:
+        required: false
+        type: string
+        default: ""
+      prompt-extra:
+        required: false
+        type: string
+        default: ""
+      model:
+        required: false
+        type: string
+        default: "medium"
+      strategy:
+        description: "Review strategy"
+        type: string
+        default: "commit"
+    secrets:
+      PORTKEY_API_KEY:
+        required: true
+
+jobs:
+  llm:
+    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
+    permissions:
+      contents: read
+      checks: read
+      pull-requests: read
+
+    outputs:
+      pr: ${{ steps.llm.outputs.pr }}
+      comment: ${{ steps.llm.outputs.comment }}
+
+    steps:
+      - name: Prepare prompt
+        shell: bash
+        run: |
+          prompt_file=$(mktemp --suffix=.md)
+          echo "prompt_file=$prompt_file" >> "$GITHUB_ENV"
+
+          cat <<'EOF' > "$prompt_file"
+          ${{ inputs.prompt }}
+          EOF
+
+          grep -q '[^[:space:]]' "$prompt_file" || \
+          cat <<'EOF' > "$prompt_file"
+          # Run a deep Buildroot br2-external layer review.
+
+          Review this repository as a Buildroot br2-external tree. The Buildroot
+          manual is available locally at `./buildroot-docs/docs/manual/`; use it
+          as the authoritative reference, especially
+          `./buildroot-docs/docs/manual/customize-outside-br.adoc`. The upstream
+          Buildroot GitLab CI generator is also available at
+          `./buildroot-docs/support/scripts/generate-gitlab-ci-yml`; use it as a
+          source of examples for how upstream Buildroot selects validation jobs.
+
+          You shall initialize the git submodule for buildroot, but avoid doing
+          full builds since they are resource consuming and already done in CI/CD.
+
+          The br2-external layer is at the repository root and, when a Buildroot
+          source tree is available, is used with:
+
+          ```sh
+          make -C <buildroot-source> BR2_EXTERNAL="$PWD" <defconfig>
+          ```
+
+          Key br2-external rules to verify:
+          - A br2-external tree must provide `external.desc`, `external.mk`, and
+            `Config.in`.
+          - `external.desc` must contain `name: <NAME>` where `<NAME>` uses only
+            `[A-Za-z0-9_]`; Buildroot exposes `BR2_EXTERNAL_<NAME>_PATH` and
+            `BR2_EXTERNAL_<NAME>_DESC`.
+          - `external.mk` should include package makefiles with paths rooted at
+            `$(BR2_EXTERNAL_<NAME>_PATH)`, normally using sorted wildcards.
+          - `Config.in` must source package Kconfig files through
+            `$BR2_EXTERNAL_<NAME>_PATH`.
+          - Defconfigs under `configs/` are exposed by Buildroot and must remain
+            reproducible with `make BR2_EXTERNAL="$PWD" <name>_defconfig`.
+          - Optional `provides/` files, board directories, overlays, post-build,
+            post-image, fakeroot scripts, genimage configs, and package hashes
+            must use paths that are valid from the Buildroot build context.
+
+          Review priorities:
+          1. Buildroot integration of the external layer: Kconfig symbols,
+             package `.mk` files, dependencies, `select` vs `depends on`, license
+             metadata, hashes, download methods, install commands, and staging /
+             target installation behavior.
+          2. Defconfig: references to external paths, fragments,
+             overlays, board assets, bootloader/kernel/rootfs/image settings, and
+             whether changes require `make savedefconfig` updates.
+          3. CI/build impact for this repository's workflows. Existing builds run
+             from `./buildroot` with `BR2_EXTERNAL="${PWD}/.."`.
+          4. Reproducibility, legal-info/SBOM readiness, package version pinning,
+             host/target separation, and no accidental dependence on the runner's
+             host filesystem.
+          5. Shell, Makefile, Kconfig, Python, and C/C++ quality issues in files
+             shipped by the external tree.
+
+          Useful validation commands:
+          ```sh
+          make -C <buildroot-source> BR2_EXTERNAL="$PWD" list-defconfigs
+          make -C <buildroot-source> BR2_EXTERNAL="$PWD" <defconfig>
+          make -C <buildroot-source> check-package
+          <buildroot-source>/utils/check-package package/*/* Config.in external.mk external.desc
+          <buildroot-source>/utils/check-symbols Config.in package/*/Config.in
+          git diff --check
+          ```
+
+          Upstream basic jobs include `check-package`, `check-symbol`,
+          `DEVELOPERS`, `package`, and `symbol`. In a br2-external review,
+          translate that into checking package style, Kconfig symbol hygiene,
+          package metadata, and whether maintainership/documentation updates are
+          needed for new boards or packages.
+          Upstream derives defconfig jobs from `configs/*_defconfig`. For this
+          repository, changed or newly added `configs/*_defconfig` files are the
+          first build candidates, for example:
+          ```sh
+          make -C <buildroot-source> BR2_EXTERNAL="$PWD" <name>_defconfig
+          make -C <buildroot-source> BR2_EXTERNAL="$PWD" savedefconfig
+          ```
+          and then compare the generated defconfig with the committed one.
+          Upstream supports targeted package validation through a commit-message
+          block named `test-pkg config:` and `utils/test-pkg`. If a change adds
+          or modifies a package, consider a test-pkg snippet, for example:
+          ```text
+          test-pkg config:
+            BR2_PACKAGE_FOO=y
+          ```
+          and, with a full Buildroot tree:
+          ```sh
+          <buildroot-source>/utils/test-pkg --config-snippet defconfig.frag \
+            --build-dir br-test-pkg
+          ```
+          Upstream branch naming can target scopes such as `*-basics`,
+          `*-defconfigs`, `*-defconfigs-<pattern>`, `*-<name>_defconfig`, and
+          `*-runtime-tests`. Use the same idea in review comments: recommend the
+          smallest relevant validation scope instead of demanding full image
+          builds for documentation-only or package-only changes.
+
+          Never claim a Buildroot rule violation unless you have checked it
+          against the tree or the manual. Ignore purely mechanical CI commits
+          whose subject starts with `[TMP]`, `[ADI]`, or `[CI]` unless the
+          prompt explicitly asks to review them.
+          EOF
+
+          if [[ "${{ inputs.strategy }}" == "files" ]]; then
+            cat <<'EOF' >> "$prompt_file"
+
+          ## File Review Protocol
+
+          Context: Certain files may have been modified intentionally to act as
+          markers for review.
+          Requirement: when a file is modified in this set, review the full file.
+          Logic:
+          1. Identify files containing a marker such as `touch`, `# touch`,
+             `/* touch */`, or another obvious placeholder-only edit.
+          2. Disregard the placeholder change itself.
+          3. Analyze the entire content of that file and its Buildroot context.
+          EOF
+          fi
+
+          cat <<'EOF' >> "$prompt_file"
+          ${{ inputs.prompt-extra }}
+          EOF
+
+      - name: Prepare tools
+        shell: bash
+        run: |
+          py_venv="$(mktemp -d)"
+          echo "py_venv=$py_venv" >> "$GITHUB_ENV"
+
+          python3 -m venv "$py_venv"
+          source "$py_venv/bin/activate"
+          python3 -m ensurepip --upgrade
+          pip install --upgrade pip
+
+      - name: Get Buildroot docs
+        shell: bash
+        run: |
+          git clone https://github.com/buildroot/buildroot.git \
+            --depth 1 --filter=blob:none --sparse -- buildroot-docs
+          git -C buildroot-docs sparse-checkout set docs/manual support/scripts
+
+      - uses: analogdevicesinc/doctools/llm@action
+        id: llm
+        with:
+          ref: ${{ inputs.ref }}
+          model: ${{ inputs.model || 'medium' }}
+          prompt-file: ${{ env.prompt_file }}
+          api-key: ${{ secrets.PORTKEY_API_KEY }}
+          py-venv: ${{ env.py_venv }}
+
+      - name: Clean-up
+        if: always()
+        shell: bash
+        run: |
+          rm -f "$prompt_file"
+          rm -rf "$py_venv"
+          rm -rf buildroot-docs
+
+  pr-comment:
+    runs-on: ubuntu-slim
+    needs: llm
+    permissions:
+      pull-requests: write
+
+    steps:
+      - uses: analogdevicesinc/doctools/gh-pr-comment@action
+        with:
+          pr: ${{ needs.llm.outputs.pr }}
+          body: ${{ needs.llm.outputs.comment }}
