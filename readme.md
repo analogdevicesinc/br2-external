@@ -32,8 +32,8 @@ support/kconfig/merge_config.sh .config \
     - Enable debugging in U-Boot and the kernel
     - Build the kernel image with an embedded root filesystem to reduce
       complexity around writing and mounting a root filesystem from storage
-- `configs/bootstrap.fragment`  
-    - Enable a minimal bootstrap / installer image.  
+- `configs/bootstrap.fragment`
+    - Enable a minimal bootstrap / installer image.
     - Includes only the tools required to program boot media.
 
 ### Example Builds
