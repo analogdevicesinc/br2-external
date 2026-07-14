@@ -56,7 +56,15 @@ else
     ip link set eth0 up
     udhcpc -i eth0 -n -q
 
-    URL="http://${PC_IP}:8000/emmc.img.gz"
+    case "$PC_IP" in
+        *:*)
+            URL="http://${PC_IP}/emmc.img.gz"
+            ;;
+        *)
+            URL="http://${PC_IP}:8000/emmc.img.gz"
+            ;;
+    esac
+
     echo "Downloading ${URL} to ${EMMC_DEV}..."
 
     if ! wget -O - "$URL" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
