@@ -21,6 +21,8 @@ on:
         required: false
         type: string
         default: ''
+  release:
+    types: [published]
 
 env:
   BR2_DL_DIR: ~/.buildroot-dl
@@ -49,6 +51,12 @@ jobs:
               "../configs/${{ inputs.flavor }}.fragment"
           fi
           make -j$(nproc)
+
+      - name: Build SDK
+        if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
+        run: |
+          cd buildroot
+          make sdk -j$(nproc)
 
       - name: Generate SBOM
         run: |
