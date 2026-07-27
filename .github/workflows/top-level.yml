@@ -2,11 +2,14 @@ name: Build and Hardware Test
 
 on:
   workflow_dispatch:
+   inputs:
+     skip-hw-test:
+       description: "Skip hardware tests"
+       default: false
+       type: boolean
   pull_request:
   release:
     types: [published]
-  schedule:
-    - cron: '0 4 * * *' # 04:00 UTC (05:00/06:00 CET/CEST, 23:00/00:00 EST/EDT)
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.sha }}
@@ -40,7 +43,7 @@ jobs:
   hardware-test:
     uses: ./.github/workflows/hw-test.yml
     needs: [build-buildroot]
-    if: ${{ github.event_name != 'schedule' && github.event_name != 'release' }}
+    if: ${{ !inputs.skip-hw-test && github.event_name != 'release' }}
     secrets: inherit
     permissions:
       actions: read
