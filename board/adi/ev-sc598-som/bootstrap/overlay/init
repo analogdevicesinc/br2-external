@@ -42,39 +42,97 @@ case "$ans" in
 esac
 
 echo
-echo "======== Install eMMC Image ========"
+echo "======== Install Image on eMMC ========"
 echo
-echo "This will download emmc.img.gz from your PC and write it to ${EMMC_DEV}."
+echo "Select what to install:"
+echo "  1) Buildroot kernel and root filesystem"
+echo "  2) Buildroot kernel and Fedora root filesystem"
+echo "  0) Skip"
 echo
-printf "Enter your PC's IP address: "
-read -r PC_IP
+printf "Choice [0/1/2]: "
+read -r INSTALL_CHOICE
 
-if [ -z "$PC_IP" ]; then
-    echo "No IP address provided. Skipping eMMC install."
-else
+case "$INSTALL_CHOICE" in
+  1|2) ;;
+  *)
+    echo "Skipping eMMC install."
+    INSTALL_CHOICE=0
+    ;;
+esac
+
+if [ "$INSTALL_CHOICE" != "0" ]; then
+    echo
+    echo "To continue, enter your PC's IP address. Leave empty to abort."
+    printf "PC IP address: "
+    read -r PC_IP
+
+    if [ -z "$PC_IP" ]; then
+        echo "Aborted."
+        exit 1
+    fi
+
     echo "Configuring network..."
-    ip link set eth0 up
-    udhcpc -i eth0 -n -q
+    for NET_IFACE in $(ip -o link show | awk -F': ' '!/lo/ && !/LOOPBACK/ {print $2}'); do
+        ip link set "$NET_IFACE" up
+        udhcpc -i "$NET_IFACE" -n -q -T 3 && break
+    done
 
     case "$PC_IP" in
         *:*)
-            URL="http://${PC_IP}/emmc.img.gz"
+            BASE_URL="http://${PC_IP}"
             ;;
         *)
-            URL="http://${PC_IP}:8000/emmc.img.gz"
+            BASE_URL="http://${PC_IP}:8000"
             ;;
     esac
 
-    echo "Downloading ${URL} to ${EMMC_DEV}..."
+    echo
+    echo "---- eMMC ----"
+    echo "Downloading ${BASE_URL}/emmc.img.gz to ${EMMC_DEV}..."
 
-    if ! wget -O - "$URL" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
+    if ! wget -O - "${BASE_URL}/emmc.img.gz" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
         echo
-        echo "ERROR: Failed to download, decompress, or write ${URL}"
+        echo "ERROR: Failed to download, decompress, or write emmc.img.gz"
         echo
         exit 1
     fi
 
     echo "eMMC install complete."
+
+    if [ "$INSTALL_CHOICE" = "2" ]; then
+        echo
+        echo "---- Rootfs ----"
+        ROOTFS_URL="${BASE_URL}/adsp-sc598-rootfs.tar.zst"
+        ROOTFS_PART="${EMMC_DEV}p2"
+        ROOTFS_MNT=/mnt/rootfs
+
+        blockdev --rereadpt "$EMMC_DEV"
+
+        echo "Formatting ${ROOTFS_PART} as ext4..."
+        if ! mkfs.ext4 -F "$ROOTFS_PART"; then
+            echo "ERROR: Failed to format ${ROOTFS_PART}."
+            exit 1
+        fi
+
+        mkdir -p "$ROOTFS_MNT"
+        if ! mount "$ROOTFS_PART" "$ROOTFS_MNT"; then
+            echo "ERROR: Failed to mount ${ROOTFS_PART}."
+            exit 1
+        fi
+
+        echo "Downloading and extracting ${ROOTFS_URL}..."
+        if ! wget -O - "$ROOTFS_URL" | zstd -d | tar -xf - -C "$ROOTFS_MNT"; then
+            echo
+            echo "ERROR: Failed to download or extract adsp-sc598-rootfs.tar.zst"
+            umount "$ROOTFS_MNT"
+            echo
+            exit 1
+        fi
+
+        umount "$ROOTFS_MNT"
+        sync
+        echo "Rootfs install complete."
+    fi
 fi
 
 echo
