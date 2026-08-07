@@ -13,6 +13,17 @@ BITP_RCU_STAT_BMODE=8
 BITM_RCU_STAT_BMODE=0x00000F00
 SPI_BMODE=1 #SPI Master Boot
 
+rescue_shell() {
+    echo
+    echo "$*"
+    echo
+    echo "Dropping to rescue shell. From here you can:"
+    echo "  reboot -f     -- reboot the board"
+    echo "  /init         -- restart the installer"
+    echo
+    exec /bin/sh
+}
+
 echo
 echo "======== Installer Environment ========"
 echo "Install U-Boot to SPI Flash"
@@ -36,8 +47,7 @@ case "$ans" in
     echo "SPI install complete"
     ;;
   *)
-    echo "Aborted."
-    exit 1
+    rescue_shell "SPI install skipped."
     ;;
 esac
 
@@ -67,8 +77,7 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
     read -r PC_IP
 
     if [ -z "$PC_IP" ]; then
-        echo "Aborted."
-        exit 1
+        rescue_shell "No IP entered, eMMC install aborted."
     fi
 
     echo "Configuring network..."
@@ -91,10 +100,7 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
     echo "Downloading ${BASE_URL}/emmc.img.gz to ${EMMC_DEV}..."
 
     if ! wget -O - "${BASE_URL}/emmc.img.gz" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
-        echo
-        echo "ERROR: Failed to download, decompress, or write emmc.img.gz"
-        echo
-        exit 1
+        rescue_shell "ERROR: Failed to download, decompress, or write emmc.img.gz"
     fi
 
     echo "eMMC install complete."
@@ -110,23 +116,18 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
 
         echo "Formatting ${ROOTFS_PART} as ext4..."
         if ! mkfs.ext4 -F "$ROOTFS_PART"; then
-            echo "ERROR: Failed to format ${ROOTFS_PART}."
-            exit 1
+            rescue_shell "ERROR: Failed to format ${ROOTFS_PART}."
         fi
 
         mkdir -p "$ROOTFS_MNT"
         if ! mount "$ROOTFS_PART" "$ROOTFS_MNT"; then
-            echo "ERROR: Failed to mount ${ROOTFS_PART}."
-            exit 1
+            rescue_shell "ERROR: Failed to mount ${ROOTFS_PART}."
         fi
 
         echo "Downloading and extracting ${ROOTFS_URL}..."
         if ! wget -O - "$ROOTFS_URL" | zstd -d | tar -xf - -C "$ROOTFS_MNT"; then
-            echo
-            echo "ERROR: Failed to download or extract adsp-sc598-rootfs.tar.zst"
             umount "$ROOTFS_MNT"
-            echo
-            exit 1
+            rescue_shell "ERROR: Failed to download or extract adsp-sc598-rootfs.tar.zst"
         fi
 
         umount "$ROOTFS_MNT"
@@ -147,7 +148,7 @@ while true; do
         echo "SPI boot mode detected."
         echo "Rebooting..."
         reboot -f
-        exit 0
+        exec /bin/sh
     fi
 
     sleep 1
