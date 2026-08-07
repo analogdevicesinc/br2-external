@@ -1,0 +1,23 @@
+[Unit]
+Description=First Boot User Setup
+# systemd-firstboot.service and system-generators/systemd-getty-generator
+# are masked (-> /dev/null) so this service has exclusive access to
+# /dev/ttySC0 on first boot.
+ConditionPathExists=!/var/lib/firstboot-user-done
+After=dev-ttySC0.device
+Requires=dev-ttySC0.device
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/firstboot-user.sh
+StandardInput=tty
+StandardOutput=tty
+StandardError=tty
+TTYPath=/dev/ttySC0
+TTYReset=yes
+TTYVHangup=no
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
+
