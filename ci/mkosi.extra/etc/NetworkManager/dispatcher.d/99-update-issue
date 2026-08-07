@@ -1,0 +1,16 @@
+#!/bin/sh
+# Updates /etc/issue with the current IP so it shows at the login prompt.
+
+IFACE="$1"
+EVENT="$2"
+
+[ "$EVENT" = "up" ] || [ "$EVENT" = "dhcp4-change" ] || exit 0
+
+IP=$(ip -4 addr show "$IFACE" 2>/dev/null | grep -o 'inet [0-9.]*' | cut -d' ' -f2 | head -1)
+[ -n "$IP" ] || exit 0
+
+cat > /etc/issue <<EOF
+Fedora Linux \r (\l)
+IP: ${IP}  (SSH: ssh <user>@${IP})
+
+EOF
