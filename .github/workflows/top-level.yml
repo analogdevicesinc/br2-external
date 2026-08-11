@@ -47,6 +47,63 @@ jobs:
     permissions:
       contents: write
 
+  bundle:
+    needs: [build-buildroot, build-mkosi-fedora]
+    strategy:
+      matrix:
+        include:
+          - defconfig: adi_sc598_ezkit_defconfig
+            rootfs: adsp-arm64-rootfs
+          - defconfig: adi_sc598_ezlite_defconfig
+            rootfs: adsp-arm64-rootfs
+          - defconfig: adi_sc846_ezkit_defconfig
+            rootfs: adsp-arm64-rootfs
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download bootstrap artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ matrix.defconfig }}-bootstrap
+          path: images/bootstrap
+
+      - name: Download debug artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ matrix.defconfig }}-debug
+          path: images/debug
+
+      - name: Download rootfs artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: ${{ matrix.rootfs }}
+          path: images/fedora
+
+      - name: Upload bundle artifact
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ matrix.defconfig }}
+          path: images
+
+      - name: Archive bundle
+        if: ${{ github.event_name == 'release' }}
+        run: |
+          bundle_name="${{ matrix.defconfig }}-${{ github.event.release.tag_name }}"
+          mv images "$bundle_name"
+          tar -cJf "${bundle_name}.tar.xz" "$bundle_name"
+          echo "bundle_archive=${bundle_name}.tar.xz" >> "$GITHUB_ENV"
+
+      - name: Upload bundle to release
+        if: ${{ github.event_name == 'release' }}
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          file: ${{ env.bundle_archive }}
+          tag: ${{ github.ref }}
+          overwrite: true
+
   hardware-test:
     uses: ./.github/workflows/hw-test.yml
     needs: [build-buildroot]

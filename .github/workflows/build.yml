@@ -75,13 +75,7 @@ jobs:
         run: |
           image_name="${{ inputs.defconfig }}"
           [ -z "${{ inputs.flavor }}" ] || image_name="${image_name}-${{ inputs.flavor }}"
-
-          image_full_name="$image_name"
-          [[ "${{ github.event_name }}" == "release" ]] && image_full_name=${image_full_name}-${{ github.event.release.tag_name }}
-          image_full_name=${image_full_name}.tar.xz
-
           echo "image_name=$image_name" >> "$GITHUB_ENV"
-          echo "image_full_name=$image_full_name" >> "$GITHUB_ENV"
 
       - name: Upload Buildroot images
         uses: actions/upload-artifact@v6
@@ -89,15 +83,3 @@ jobs:
           name: ${{ env.image_name }}
           path: buildroot/output/images
 
-      - name: Archive output images directory
-        if: ${{ github.event_name == 'release' }}
-        run: |
-          tar -cJvf "${image_full_name}" buildroot/output/images/
-
-      - name: Upload release archive to release
-        uses: svenstaro/upload-release-action@v2
-        if: ${{ github.event_name == 'release' }}
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ${{ env.image_full_name }}
-          tag: ${{ github.ref }}

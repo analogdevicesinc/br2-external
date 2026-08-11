@@ -34,12 +34,3 @@ jobs:
           name: adsp-arm64-rootfs
           path: ci/mkosi.output/adsp-arm64-rootfs.tar.zst
           retention-days: 30
-
-      - name: Upload rootfs to release
-        if: github.event_name == 'release'
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
-          file: ci/mkosi.output/adsp-arm64-rootfs.tar.zst
-          asset_name: adsp-arm64-rootfs-${{ github.event.release.tag_name }}.tar.zst
-          tag: ${{ github.ref }}
