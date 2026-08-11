@@ -97,9 +97,9 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
 
     echo
     echo "---- eMMC ----"
-    echo "Downloading ${BASE_URL}/emmc.img.gz to ${EMMC_DEV}..."
+    echo "Downloading ${BASE_URL}/debug/emmc.img.gz to ${EMMC_DEV}..."
 
-    if ! wget -O - "${BASE_URL}/emmc.img.gz" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
+    if ! wget -O - "${BASE_URL}/debug/emmc.img.gz" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
         rescue_shell "ERROR: Failed to download, decompress, or write emmc.img.gz"
     fi
 
@@ -108,7 +108,7 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
     if [ "$INSTALL_CHOICE" = "2" ]; then
         echo
         echo "---- Rootfs ----"
-        ROOTFS_URL="${BASE_URL}/adsp-arm64-rootfs.tar.zst"
+        ROOTFS_URL="${BASE_URL}/fedora/adsp-arm64-rootfs.tar.zst"
         ROOTFS_PART="${EMMC_DEV}p2"
         ROOTFS_MNT=/mnt/rootfs
 
