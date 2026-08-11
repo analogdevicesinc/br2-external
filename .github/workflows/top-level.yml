@@ -22,6 +22,8 @@ jobs:
             flavor: debug
           - defconfig: adi_sc598_ezkit_defconfig
             flavor: bootstrap
+          - defconfig: adi_sc598_ezkit_defconfig
+            flavor: initramfs
           - defconfig: zynq_pluto_defconfig
           - defconfig: zynq_m2k_defconfig
           - defconfig: microblaze_adi_rootfs_defconfig

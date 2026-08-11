@@ -1,0 +1,9 @@
+# Plain standalone initramfs for hardware testing.
+
+BR2_TARGET_ROOTFS_CPIO=y
+BR2_TARGET_ROOTFS_CPIO_GZIP=y
+# BR2_TARGET_ROOTFS_INITRAMFS is not set
+BR2_TARGET_ROOTFS_CPIO_UIMAGE=y
+
+# This is a RAM-only rootfs, so drop any post-image step.
+BR2_ROOTFS_POST_IMAGE_SCRIPT=""
