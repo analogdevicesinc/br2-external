@@ -35,6 +35,8 @@ support/kconfig/merge_config.sh .config \
 - `configs/bootstrap.fragment`
     - Enable a minimal bootstrap / installer image.
     - Includes only the tools required to program boot media.
+- `configs/initramfs.fragment`
+    - Build a standalone, RAM-only file system for hardware testing.
 
 ### Example Builds
 
@@ -55,6 +57,16 @@ make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
 support/kconfig/merge_config.sh .config \
     ../configs/buildroot.fragment \
     ../configs/bootstrap.fragment
+make -j$(nproc)
+```
+
+Initramfs for arm64:
+
+```sh
+make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
+support/kconfig/merge_config.sh .config \
+    ../configs/buildroot.fragment \
+    ../configs/initramfs.fragment
 make -j$(nproc)
 ```
 
