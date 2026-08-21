@@ -108,7 +108,7 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
     if [ "$INSTALL_CHOICE" = "2" ]; then
         echo
         echo "---- Rootfs ----"
-        ROOTFS_URL="${BASE_URL}/adsp-sc598-rootfs.tar.zst"
+        ROOTFS_URL="${BASE_URL}/adsp-arm64-rootfs.tar.zst"
         ROOTFS_PART="${EMMC_DEV}p2"
         ROOTFS_MNT=/mnt/rootfs
 
@@ -127,7 +127,7 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
         echo "Downloading and extracting ${ROOTFS_URL}..."
         if ! wget -O - "$ROOTFS_URL" | zstd -d | tar -xf - -C "$ROOTFS_MNT"; then
             umount "$ROOTFS_MNT"
-            rescue_shell "ERROR: Failed to download or extract adsp-sc598-rootfs.tar.zst"
+            rescue_shell "ERROR: Failed to download or extract adsp-arm64-rootfs.tar.zst"
         fi
 
         umount "$ROOTFS_MNT"
