@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="The Xilinx based targets are built in CI/CD using the ADSP approach documented in ADSP. Additionally, a non-standard ADI specific approach is also maintained and documented below." name="description" />
+
+    <title>Xilinx &#8212; ADI Buildroot External  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=fb8972a4" />
+    <script async="async" src="_static/app.umd.js?v=26d0298f"></script>
+    <link rel="icon" href="_static/icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="prev" title="ADSP" href="adsp.html" />
+   
+  
+  
+  
+  <meta name="repository" content="br2-external">
+  <meta name="version" content="">
+  
+    <meta name="page_source_suffix" content=".rst">
+  
+  
+  
+
+
+<style>
+  body {
+    
+  }
+
+  body.dark {
+    
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body:not(.light) {
+      
+    }
+  }
+</style>
+  </head>
+  
+    <body>
+  
+  <input type="checkbox" id="input-show-toc">
+  <input type="checkbox" id="input-show-localtoc">
+  <input type="checkbox" id="input-show-repotoc">
+
+  
+  <div class="search-area">
+    <form action="" method="get">
+      <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
+      <button class="icon"></button>
+    </form>
+  </div>
+  
+
+  <header>
+    <div id="left">
+      <label id="show-sidebar" class="icon" for="input-show-toc" title="Show/hide index"></label>
+    </div>
+    <div id="right">
+      <span>
+        <a id="logo-org" href="https://developer.analog.com/" aria-label="Analog Devices Inc. landing page"></a>
+        <div class="vertical-divider"></div>
+        
+        <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs">Documentation</label>
+        
+        <a id="logo" href="index.html">
+          <div>ADI Buildroot External</div>
+        </a>
+      </span>
+      <span class="reverse">
+        <label id="show-localtoc" class="icon" for="input-show-localtoc" title="Show/hide contents"></label>
+      </span>
+    </div>
+  </header>
+
+
+  <div class="repotoc-tree overlay">
+    <root/>
+
+  </div>
+    <div class="localtoc">
+      <div class="tocwrapper">
+        <div class="header localtoc-header">
+          <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
+        </div>
+        <nav>
+          <ul>
+<li><a class="reference internal" href="#">Xilinx</a><ul>
+<li><a class="reference internal" href="#top-level-makefile">Top-level Makefile</a></li>
+<li><a class="reference internal" href="#buildroot-patches">Buildroot Patches</a></li>
+</ul>
+</li>
+</ul>
+
+        </nav>
+      </div>
+    </div>
+
+  
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+    <a id="no-logo" href="index.html">
+      ADI Buildroot External
+    </a><input id="input-switch-toc" type="checkbox">
+<label id="show-repotoc" for="input-switch-toc">
+All content
+</label>
+<label id="show-toc" for="input-switch-toc">
+Content on this topic
+</label>
+<div class="repotoc-tree">
+  <root/>
+
+</div>
+<div class="toc-tree">
+  <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="adsp.html">ADSP</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Xilinx</a></li>
+</ul>
+
+
+</div>
+        </div>
+      </div>
+
+  <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper" id="top-anchor">
+          <div class="body-header">
+  <nav class="breadcrumb empty"><ol></ol></nav>
+</div>
+          <div class="body" role="main">
+            
+  <section id="xilinx">
+<h1>Xilinx<a class="headerlink" href="#xilinx" title="Link to this heading"></a></h1>
+<p>The Xilinx based targets are built in CI/CD using the ADSP approach documented
+in <a class="reference internal" href="adsp.html"><span class="doc">ADSP</span></a>. Additionally, a non-standard ADI specific approach is also
+maintained and documented below.</p>
+<section id="top-level-makefile">
+<h2>Top-level Makefile<a class="headerlink" href="#top-level-makefile" title="Link to this heading"></a></h2>
+<p>A small wrapper at the repo root mirrors the in-tree workflow without having
+to <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">buildroot/</span></code> first:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span>buildroot<span class="w">                   </span><span class="c1"># clone &amp; patch (skips if buildroot/ exists)</span>
+make<span class="w"> </span>zynq_pluto_defconfig<span class="w">        </span><span class="c1"># from ./configs and forwarded to Buildroot</span>
+make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</span><span class="w">                  </span><span class="c1"># forwarded; BR2_EXTERNAL is set for you</span>
+</pre></div>
+</div>
+<p>Override the checkout source with <code class="docutils literal notranslate"><span class="pre">BUILDROOT_URL</span></code> / <code class="docutils literal notranslate"><span class="pre">BUILDROOT_VERSION</span></code>; the
+defaults point at the <a class="icon link reference external" href="https://github.com/analogdevicesinc/buildroot" target="_blank">ADI Buildroot fork</a>
+on <code class="docutils literal notranslate"><span class="pre">adi-2026.02-y</span></code>. <code class="docutils literal notranslate"><span class="pre">make</span> <span class="pre">buildroot-patch</span></code> re-applies any local patches and is
+idempotent — patches already present in the checkout are skipped via
+<code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">apply</span> <span class="pre">--check</span></code>.</p>
+<p>Be mindful of your environment variables, they may overwrite variables and
+affect the build. You can unset a single variable like <code class="docutils literal notranslate"><span class="pre">U</span></code> by suffixing with
+<code class="docutils literal notranslate"><span class="pre">env</span> <span class="pre">-u</span> <span class="pre">U</span> <span class="pre">make</span></code>.</p>
+</section>
+<section id="buildroot-patches">
+<h2>Buildroot Patches<a class="headerlink" href="#buildroot-patches" title="Link to this heading"></a></h2>
+<p><code class="docutils literal notranslate"><span class="pre">patches/buildroot/</span></code> holds ADI-specific Buildroot changes (package fix-ups,
+kernel build glue, etc.). These are already merged into the ADI Buildroot
+fork the submodule points at, so they are normally no-ops at build time. They
+are kept here as an applicable set so the same image can be built against a
+stock upstream Buildroot checkout (via <code class="docutils literal notranslate"><span class="pre">BUILDROOT_URL</span></code> override) without
+manually carrying the patches.</p>
+</section>
+</section>
+
+
+          </div>
+              <div class="related">
+                &nbsp;
+    <a href="adsp.html" title="Previous document (Alt+Shift+LeftArrow)" class="prev">ADSP</a>
+    <div></div>
+              </div>
+          
+        </div>
+      </div>
+  </div>
+
+  <label id="cancel-area-show-toc" for="input-show-toc"></label>
+  <label id="cancel-area-show-localtoc" for="input-show-localtoc"></label>
+    <footer>
+      &#169;2025, Analog Devices, Inc.
+      
+      |
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+      &amp; <a href="https://github.com/analogdevicesinc/doctools">Doctools</a>
+      
+    </footer>
+  </body>
+</html>
