@@ -172,10 +172,10 @@ ext4/UBI root filesystem images in <code class="docutils literal notranslate"><s
 SD card, and GPIO expanders must be configured before the SD card can be used
 later in the boot flow.</p>
 <ul class="simple">
-<li><p>Connect USB-C <code class="docutils literal notranslate"><span class="pre">P2</span></code> on the SoM to the host.</p></li>
+<li><p>Connect USB-C <code class="docutils literal notranslate"><span class="pre">P2</span></code> on the SoM to the host</p></li>
 <li><p>Connect an ICE-1000/ICE-2000 to JTAG header <code class="docutils literal notranslate"><span class="pre">P4</span></code> on the SoM, or use the
-carrier board’s embedded debugger through USB-C <code class="docutils literal notranslate"><span class="pre">P9</span></code>.</p></li>
-<li><p>Set SoM rotary switch <code class="docutils literal notranslate"><span class="pre">S2</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+carrier board’s embedded debugger through USB-C <code class="docutils literal notranslate"><span class="pre">P9</span></code></p></li>
+<li><p>Set SoM rotary switch <code class="docutils literal notranslate"><span class="pre">S2</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
 </ul>
 <p>Build the ADI OpenOCD fork and start it with the SC84x target configuration:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/analogdevicesinc/openocd
@@ -202,11 +202,11 @@ U-Boot prompt, program SPI flash:</p>
 <h2>Hardware Notes<a class="headerlink" href="#hardware-notes" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>UART0 is routed through a CP2102N USB bridge to SoM USB-C <code class="docutils literal notranslate"><span class="pre">P2</span></code>. Its
-GPIO-controlled bus switches leave the UART disabled at boot.</p></li>
+GPIO-controlled bus switches leave the UART disabled at boot</p></li>
 <li><p>The SoM eMMC and SD-card slot share the eMSI controller; only one can be
-used at a time.</p></li>
+used at a time</p></li>
 <li><p>A single ADP5587 I2C GPIO expander controls the peripheral bus switches and
-resets, including the USB 2.0 PHY reset.</p></li>
+resets, including the USB 2.0 PHY reset</p></li>
 </ul>
 </section>
 </section>

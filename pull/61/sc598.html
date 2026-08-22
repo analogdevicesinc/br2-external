@@ -179,10 +179,10 @@ ext4/UBI root filesystem images in <code class="docutils literal notranslate"><s
 SD card, and the GPIO expanders must be configured before the SD card can be
 used later in the boot flow.</p>
 <ul class="simple">
-<li><p>Connect USB-C <code class="docutils literal notranslate"><span class="pre">P1</span></code> on the SoM to the host.</p></li>
+<li><p>Connect USB-C <code class="docutils literal notranslate"><span class="pre">P1</span></code> on the SoM to the host</p></li>
 <li><p>Connect an ICE-1000/ICE-2000 to JTAG header <code class="docutils literal notranslate"><span class="pre">P6</span></code> on the SoM, or connect
-the carrier board’s embedded debugger through micro USB <code class="docutils literal notranslate"><span class="pre">P2</span></code>.</p></li>
-<li><p>Set SoM rotary switch <code class="docutils literal notranslate"><span class="pre">S1</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code>.</p></li>
+the carrier board’s embedded debugger through micro USB <code class="docutils literal notranslate"><span class="pre">P2</span></code></p></li>
+<li><p>Set SoM rotary switch <code class="docutils literal notranslate"><span class="pre">S1</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
 </ul>
 <p>Build the ADI OpenOCD fork, then start it with the A55 target configuration:</p>
 <div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/analogdevicesinc/openocd
@@ -209,15 +209,15 @@ Serve the images from the same directory, for example with
 <h2>Hardware Notes<a class="headerlink" href="#hardware-notes" title="Link to this heading"></a></h2>
 <ul class="simple">
 <li><p>UART0 is routed through a FT232RQ to SoM USB-C <code class="docutils literal notranslate"><span class="pre">P1</span></code>. GPIO-controlled bus
-switches leave it disabled at boot.</p></li>
+switches leave it disabled at boot</p></li>
 <li><p>The SoM eMMC and carrier SD-card slot share the SC598 SD controller; only
-one can be used at a time.</p></li>
+one can be used at a time</p></li>
 <li><p>The EZ-KIT’s ADIN1200 Ethernet port and USB PHY are multiplexed and cannot
-be used together.</p></li>
+be used together</p></li>
 <li><p>The EZLITE device tree enables ADIN1300 Gigabit Ethernet and the ADAU1372
 audio codec by default. Its FT422 USB-QSPI interface is selected by jumper.</p></li>
 <li><p>Use a Rev. E SoM. Rev. D uses a different GPIO expander and SPI NOR size;
-its UART routing differs and may suppress console output.</p></li>
+its UART routing differs and may suppress console output</p></li>
 </ul>
 </section>
 </section>

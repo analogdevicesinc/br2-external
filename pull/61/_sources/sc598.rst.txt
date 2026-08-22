@@ -37,10 +37,10 @@ JTAG is the documented and tested bootstrap path. The boot ROM cannot boot an
 SD card, and the GPIO expanders must be configured before the SD card can be
 used later in the boot flow.
 
-- Connect USB-C ``P1`` on the SoM to the host.
+- Connect USB-C ``P1`` on the SoM to the host
 - Connect an ICE-1000/ICE-2000 to JTAG header ``P6`` on the SoM, or connect
-  the carrier board's embedded debugger through micro USB ``P2``.
-- Set SoM rotary switch ``S1`` to ``0``.
+  the carrier board's embedded debugger through micro USB ``P2``
+- Set SoM rotary switch ``S1`` to ``0``
 
 Build the ADI OpenOCD fork, then start it with the A55 target configuration:
 
@@ -71,12 +71,12 @@ Hardware Notes
 --------------
 
 - UART0 is routed through a FT232RQ to SoM USB-C ``P1``. GPIO-controlled bus
-  switches leave it disabled at boot.
+  switches leave it disabled at boot
 - The SoM eMMC and carrier SD-card slot share the SC598 SD controller; only
-  one can be used at a time.
+  one can be used at a time
 - The EZ-KIT's ADIN1200 Ethernet port and USB PHY are multiplexed and cannot
-  be used together.
+  be used together
 - The EZLITE device tree enables ADIN1300 Gigabit Ethernet and the ADAU1372
   audio codec by default. Its FT422 USB-QSPI interface is selected by jumper.
 - Use a Rev. E SoM. Rev. D uses a different GPIO expander and SPI NOR size;
-  its UART routing differs and may suppress console output.
+  its UART routing differs and may suppress console output

@@ -30,10 +30,10 @@ JTAG is the documented and tested bootstrap path. The boot ROM cannot boot an
 SD card, and GPIO expanders must be configured before the SD card can be used
 later in the boot flow.
 
-- Connect USB-C ``P2`` on the SoM to the host.
+- Connect USB-C ``P2`` on the SoM to the host
 - Connect an ICE-1000/ICE-2000 to JTAG header ``P4`` on the SoM, or use the
-  carrier board's embedded debugger through USB-C ``P9``.
-- Set SoM rotary switch ``S2`` to ``0``.
+  carrier board's embedded debugger through USB-C ``P9``
+- Set SoM rotary switch ``S2`` to ``0``
 
 Build the ADI OpenOCD fork and start it with the SC84x target configuration:
 
@@ -64,8 +64,8 @@ Hardware Notes
 --------------
 
 - UART0 is routed through a CP2102N USB bridge to SoM USB-C ``P2``. Its
-  GPIO-controlled bus switches leave the UART disabled at boot.
+  GPIO-controlled bus switches leave the UART disabled at boot
 - The SoM eMMC and SD-card slot share the eMSI controller; only one can be
-  used at a time.
+  used at a time
 - A single ADP5587 I2C GPIO expander controls the peripheral bus switches and
-  resets, including the USB 2.0 PHY reset.
+  resets, including the USB 2.0 PHY reset
