@@ -1,0 +1,71 @@
+ADSP-SC846 Evaluation Kit
+=========================
+
+The SC846 evaluation kit pairs the ``EV-SC846-SOM`` with the
+``EV-SOMCRR2-EZKIT`` carrier board. The processor has two 1.2 GHz Cortex-A55
+cores and one 1.2 GHz SHARC FX core. Bare-metal or FreeRTOS applications for
+the SHARC core can be loaded by Linux through remoteproc.
+
+Build
+-----
+
+From ``buildroot/``, select the board and apply the debug image fragments:
+
+.. code-block:: bash
+
+   make BR2_EXTERNAL="${PWD}/.." adi_sc846_ezkit_defconfig
+   support/kconfig/merge_config.sh .config \
+       ../configs/buildroot.fragment \
+       ../configs/debug.fragment
+   make -j$(nproc)
+
+The build produces ``emmc.img`` and ``flash.img``, the kernel ``Image``, a
+FIT image, the ``sc846-som-ezkit.dtb`` device tree, U-Boot loaders, and the
+ext4/UBI root filesystem images in ``output/images/``.
+
+Bootstrap SPI Flash with JTAG
+-----------------------------
+
+JTAG is the documented and tested bootstrap path. The boot ROM cannot boot an
+SD card, and GPIO expanders must be configured before the SD card can be used
+later in the boot flow.
+
+- Connect USB-C ``P2`` on the SoM to the host.
+- Connect an ICE-1000/ICE-2000 to JTAG header ``P4`` on the SoM, or use the
+  carrier board's embedded debugger through USB-C ``P9``.
+- Set SoM rotary switch ``S2`` to ``0``.
+
+Build the ADI OpenOCD fork and start it with the SC84x target configuration:
+
+.. code-block:: bash
+
+   git clone https://github.com/analogdevicesinc/openocd
+   cd openocd
+   ./bootstrap && ./configure && make -j$(nproc)
+   src/openocd -f adi-dbgagent.cfg -f adspsc84x.cfg \
+       --search tcl/ --search tcl/interface/ --search tcl/target/
+
+In a second terminal, start a serial console at 115200 8N1 with flow control
+disabled. In ``buildroot/output/images/``, run
+``gdb-multiarch -x u-boot.gdb`` (or ``gdb -x u-boot.gdb`` on RHEL/Fedora), and
+serve that directory, for example with ``python -m http.server``. At the
+U-Boot prompt, program SPI flash:
+
+.. code-block:: console
+
+   => sf probe
+   => dhcp
+   => wget ${fdt_addr_r} <host-ip-addr>:/flash.img
+   => sf update ${fdt_addr_r} 0x0 ${filesize}
+
+Set ``S2`` to ``1`` and reset the board.
+
+Hardware Notes
+--------------
+
+- UART0 is routed through a CP2102N USB bridge to SoM USB-C ``P2``. Its
+  GPIO-controlled bus switches leave the UART disabled at boot.
+- The SoM eMMC and SD-card slot share the eMSI controller; only one can be
+  used at a time.
+- A single ADP5587 I2C GPIO expander controls the peripheral bus switches and
+  resets, including the USB 2.0 PHY reset.
