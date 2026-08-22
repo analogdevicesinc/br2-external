@@ -1,0 +1,33 @@
+ADSP-SC598 Evaluation Kits
+==========================
+
+The SC598 evaluation kits pair the ``EV-SC598-SOM`` (Rev. E) with either the
+``EV-SOMCRR-EZKIT`` or the ``EV-SOMCRR-EZLITE`` carrier board. The processor
+has one 1.2 GHz Cortex-A55 core and two 1 GHz SHARC DSP cores. Bare-metal or
+FreeRTOS applications for the SHARC cores can be loaded by Linux through
+remoteproc.
+
+Build
+-----
+
+From ``buildroot/``, select the carrier board and apply the debug image
+fragments:
+
+.. code-block:: bash
+
+   # EZ-KIT
+   make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
+
+   # or EZLITE
+   make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezlite_defconfig
+
+   support/kconfig/merge_config.sh .config \
+       ../configs/buildroot.fragment \
+       ../configs/debug.fragment
+   make -j$(nproc)
+
+The build produces ``emmc.img`` and ``flash.img``, the kernel ``Image``, a
+FIT image, device trees for both carrier boards, U-Boot loaders, and the
+ext4/UBI root filesystem images in ``output/images/``. The build output
+artifacts can be used to `bootstrap the
+boards <https://analogdevicesinc.github.io/documentation/products/adsp/setup.html>`_.

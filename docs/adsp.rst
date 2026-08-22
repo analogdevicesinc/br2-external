@@ -1,6 +1,12 @@
 ADSP
 ====
 
+Supported Boards
+----------------
+
+- :doc:`sc598`: ADI SC598 EZ-KIT and EZLITE.
+- :doc:`sc846`: ADI SC846 EZ-KIT.
+
 Getting Started
 ---------------
 
@@ -73,3 +79,12 @@ Initramfs for arm64:
        ../configs/buildroot.fragment \
        ../configs/initramfs.fragment
    make -j$(nproc)
+
+Board Documentation
+-------------------
+
+.. toctree::
+   :maxdepth: 1
+
+   sc598
+   sc846
