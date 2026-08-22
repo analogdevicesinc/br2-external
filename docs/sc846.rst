@@ -1,0 +1,26 @@
+ADSP-SC846 Evaluation Kit
+=========================
+
+The SC846 evaluation kit pairs the ``EV-SC846-SOM`` with the
+``EV-SOMCRR2-EZKIT`` carrier board. The processor has two 1.2 GHz Cortex-A55
+cores and one 1.2 GHz SHARC FX core. Bare-metal or FreeRTOS applications for
+the SHARC core can be loaded by Linux through remoteproc.
+
+Build
+-----
+
+From ``buildroot/``, select the board and apply the debug image fragments:
+
+.. code-block:: bash
+
+   make BR2_EXTERNAL="${PWD}/.." adi_sc846_ezkit_defconfig
+   support/kconfig/merge_config.sh .config \
+       ../configs/buildroot.fragment \
+       ../configs/debug.fragment
+   make -j$(nproc)
+
+The build produces ``emmc.img`` and ``flash.img``, the kernel ``Image``, a
+FIT image, the ``sc846-som-ezkit.dtb`` device tree, U-Boot loaders, and the
+ext4/UBI root filesystem images in ``output/images/``. The build output
+artifacts can be used to `bootstrap the
+boards <https://analogdevicesinc.github.io/documentation/products/adsp/setup.html>`_.

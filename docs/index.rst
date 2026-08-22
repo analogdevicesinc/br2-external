@@ -14,4 +14,6 @@ Generic support for ADI evaluation boards is implemented in the
    :titlesonly:
 
    adsp
+   sc598
+   sc846
    xilinx
