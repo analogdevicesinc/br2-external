@@ -95,8 +95,6 @@
           <ul>
 <li><a class="reference internal" href="#">ADSP-SC598 Evaluation Kits</a><ul>
 <li><a class="reference internal" href="#build">Build</a></li>
-<li><a class="reference internal" href="#bootstrap-spi-flash-with-jtag">Bootstrap SPI Flash with JTAG</a></li>
-<li><a class="reference internal" href="#hardware-notes">Hardware Notes</a></li>
 </ul>
 </li>
 </ul>
@@ -171,54 +169,9 @@ make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</s
 </div>
 <p>The build produces <code class="docutils literal notranslate"><span class="pre">emmc.img</span></code> and <code class="docutils literal notranslate"><span class="pre">flash.img</span></code>, the kernel <code class="docutils literal notranslate"><span class="pre">Image</span></code>, a
 FIT image, device trees for both carrier boards, U-Boot loaders, and the
-ext4/UBI root filesystem images in <code class="docutils literal notranslate"><span class="pre">output/images/</span></code>.</p>
-</section>
-<section id="bootstrap-spi-flash-with-jtag">
-<h2>Bootstrap SPI Flash with JTAG<a class="headerlink" href="#bootstrap-spi-flash-with-jtag" title="Link to this heading"></a></h2>
-<p>JTAG is the documented and tested bootstrap path. The boot ROM cannot boot an
-SD card, and the GPIO expanders must be configured before the SD card can be
-used later in the boot flow.</p>
-<ul class="simple">
-<li><p>Connect USB-C <code class="docutils literal notranslate"><span class="pre">P1</span></code> on the SoM to the host</p></li>
-<li><p>Connect an ICE-1000/ICE-2000 to JTAG header <code class="docutils literal notranslate"><span class="pre">P6</span></code> on the SoM, or connect
-the carrier board’s embedded debugger through micro USB <code class="docutils literal notranslate"><span class="pre">P2</span></code></p></li>
-<li><p>Set SoM rotary switch <code class="docutils literal notranslate"><span class="pre">S1</span></code> to <code class="docutils literal notranslate"><span class="pre">0</span></code></p></li>
-</ul>
-<p>Build the ADI OpenOCD fork, then start it with the A55 target configuration:</p>
-<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/analogdevicesinc/openocd
-<span class="nb">cd</span><span class="w"> </span>openocd
-./bootstrap<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>./configure<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</span>
-src/openocd<span class="w"> </span>-f<span class="w"> </span>adi-dbgagent.cfg<span class="w"> </span>-f<span class="w"> </span>adspsc59x_a55.cfg<span class="w"> </span><span class="se">\</span>
-<span class="w">    </span>--search<span class="w"> </span>tcl/<span class="w"> </span>--search<span class="w"> </span>tcl/interface/<span class="w"> </span>--search<span class="w"> </span>tcl/target/
-</pre></div>
-</div>
-<p>In a second terminal, start a serial console at 115200 8N1 with flow control
-disabled. In <code class="docutils literal notranslate"><span class="pre">buildroot/output/images/</span></code>, load the U-Boot stages with
-<code class="docutils literal notranslate"><span class="pre">gdb-multiarch</span> <span class="pre">-x</span> <span class="pre">u-boot.gdb</span></code> (or <code class="docutils literal notranslate"><span class="pre">gdb</span> <span class="pre">-x</span> <span class="pre">u-boot.gdb</span></code> on RHEL/Fedora).
-Serve the images from the same directory, for example with
-<code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">-m</span> <span class="pre">http.server</span></code>. At the U-Boot prompt, program SPI flash:</p>
-<div class="highlight-console notranslate"><div class="highlight"><pre><span></span><span class="go">=&gt; sf probe</span>
-<span class="go">=&gt; dhcp</span>
-<span class="go">=&gt; wget ${fdt_addr_r} &lt;host-ip-addr&gt;:/flash.img</span>
-<span class="go">=&gt; sf update ${fdt_addr_r} 0x0 ${filesize}</span>
-</pre></div>
-</div>
-<p>Set <code class="docutils literal notranslate"><span class="pre">S1</span></code> to <code class="docutils literal notranslate"><span class="pre">1</span></code> and reset the board.</p>
-</section>
-<section id="hardware-notes">
-<h2>Hardware Notes<a class="headerlink" href="#hardware-notes" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p>UART0 is routed through a FT232RQ to SoM USB-C <code class="docutils literal notranslate"><span class="pre">P1</span></code>. GPIO-controlled bus
-switches leave it disabled at boot</p></li>
-<li><p>The SoM eMMC and carrier SD-card slot share the SC598 SD controller; only
-one can be used at a time</p></li>
-<li><p>The EZ-KIT’s ADIN1200 Ethernet port and USB PHY are multiplexed and cannot
-be used together</p></li>
-<li><p>The EZLITE device tree enables ADIN1300 Gigabit Ethernet and the ADAU1372
-audio codec by default. Its FT422 USB-QSPI interface is selected by jumper.</p></li>
-<li><p>Use a Rev. E SoM. Rev. D uses a different GPIO expander and SPI NOR size;
-its UART routing differs and may suppress console output</p></li>
-</ul>
+ext4/UBI root filesystem images in <code class="docutils literal notranslate"><span class="pre">output/images/</span></code>. The build output
+artifacts can be used to <a class="icon link reference external" href="https://analogdevicesinc.github.io/documentation/products/adsp/setup.html" target="_blank">bootstrap the
+boards</a>.</p>
 </section>
 </section>
 

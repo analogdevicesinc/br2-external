@@ -28,55 +28,6 @@ fragments:
 
 The build produces ``emmc.img`` and ``flash.img``, the kernel ``Image``, a
 FIT image, device trees for both carrier boards, U-Boot loaders, and the
-ext4/UBI root filesystem images in ``output/images/``.
-
-Bootstrap SPI Flash with JTAG
------------------------------
-
-JTAG is the documented and tested bootstrap path. The boot ROM cannot boot an
-SD card, and the GPIO expanders must be configured before the SD card can be
-used later in the boot flow.
-
-- Connect USB-C ``P1`` on the SoM to the host
-- Connect an ICE-1000/ICE-2000 to JTAG header ``P6`` on the SoM, or connect
-  the carrier board's embedded debugger through micro USB ``P2``
-- Set SoM rotary switch ``S1`` to ``0``
-
-Build the ADI OpenOCD fork, then start it with the A55 target configuration:
-
-.. code-block:: bash
-
-   git clone https://github.com/analogdevicesinc/openocd
-   cd openocd
-   ./bootstrap && ./configure && make -j$(nproc)
-   src/openocd -f adi-dbgagent.cfg -f adspsc59x_a55.cfg \
-       --search tcl/ --search tcl/interface/ --search tcl/target/
-
-In a second terminal, start a serial console at 115200 8N1 with flow control
-disabled. In ``buildroot/output/images/``, load the U-Boot stages with
-``gdb-multiarch -x u-boot.gdb`` (or ``gdb -x u-boot.gdb`` on RHEL/Fedora).
-Serve the images from the same directory, for example with
-``python -m http.server``. At the U-Boot prompt, program SPI flash:
-
-.. code-block:: console
-
-   => sf probe
-   => dhcp
-   => wget ${fdt_addr_r} <host-ip-addr>:/flash.img
-   => sf update ${fdt_addr_r} 0x0 ${filesize}
-
-Set ``S1`` to ``1`` and reset the board.
-
-Hardware Notes
---------------
-
-- UART0 is routed through a FT232RQ to SoM USB-C ``P1``. GPIO-controlled bus
-  switches leave it disabled at boot
-- The SoM eMMC and carrier SD-card slot share the SC598 SD controller; only
-  one can be used at a time
-- The EZ-KIT's ADIN1200 Ethernet port and USB PHY are multiplexed and cannot
-  be used together
-- The EZLITE device tree enables ADIN1300 Gigabit Ethernet and the ADAU1372
-  audio codec by default. Its FT422 USB-QSPI interface is selected by jumper.
-- Use a Rev. E SoM. Rev. D uses a different GPIO expander and SPI NOR size;
-  its UART routing differs and may suppress console output
+ext4/UBI root filesystem images in ``output/images/``. The build output
+artifacts can be used to `bootstrap the
+boards <https://analogdevicesinc.github.io/documentation/products/adsp/setup.html>`_.
