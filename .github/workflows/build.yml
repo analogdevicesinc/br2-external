@@ -42,9 +42,10 @@ jobs:
           umask 022
           make distclean
           make BR2_EXTERNAL="${PWD}/.." ${{ inputs.defconfig }}
+          support/kconfig/merge_config.sh .config \
+            "../configs/buildroot.fragment"
           if [ -n "${{ inputs.flavor }}" ]; then
             support/kconfig/merge_config.sh .config \
-              "../configs/buildroot.fragment" \
               "../configs/${{ inputs.flavor }}.fragment"
           fi
           make -j$(nproc)
