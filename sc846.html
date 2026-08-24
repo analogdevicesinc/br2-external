@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html lang="en" data-content_root="./">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta content="The SC846 evaluation kit pairs the EV-SC846-SOM with the EV-SOMCRR2-EZKIT carrier board. The processor has two 1.2 GHz Cortex-A55 cores and one 1.2 GHz SHARC FX core. Bare-metal or FreeRTOS applications for the SHARC core can be loaded by Linux through remoteproc." name="description" />
+
+    <title>ADSP-SC846 Evaluation Kit &#8212; ADI Buildroot External  documentation</title>
+    <link rel="stylesheet" type="text/css" href="_static/pygments.css?v=8e8a900e" />
+    <link rel="stylesheet" type="text/css" href="_static/app.min.css?v=fb8972a4" />
+    <script async="async" src="_static/app.umd.js?v=26d0298f"></script>
+    <link rel="icon" href="_static/icon.svg"/>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Xilinx" href="xilinx.html" />
+    <link rel="prev" title="ADSP-SC598 Evaluation Kits" href="sc598.html" />
+   
+  
+  
+  
+  <meta name="repository" content="br2-external">
+  <meta name="version" content="">
+  
+    <meta name="page_source_suffix" content=".rst">
+  
+  
+  
+
+
+<style>
+  body {
+    
+  }
+
+  body.dark {
+    
+  }
+
+  @media (prefers-color-scheme: dark) {
+    body:not(.light) {
+      
+    }
+  }
+</style>
+  </head>
+  
+    <body>
+  
+  <input type="checkbox" id="input-show-toc">
+  <input type="checkbox" id="input-show-localtoc">
+  <input type="checkbox" id="input-show-repotoc">
+
+  
+  <div class="search-area">
+    <form action="" method="get">
+      <input type="text" name="q" aria-labelledby="search-documentation" value="" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" role="search" placeholder="Search"/>
+      <button class="icon"></button>
+    </form>
+  </div>
+  
+
+  <header>
+    <div id="left">
+      <label id="show-sidebar" class="icon" for="input-show-toc" title="Show/hide index"></label>
+    </div>
+    <div id="right">
+      <span>
+        <a id="logo-org" href="https://developer.analog.com/" aria-label="Analog Devices Inc. landing page"></a>
+        <div class="vertical-divider"></div>
+        
+        <label id="show-repotoc" for="input-show-repotoc" title="Show/hide docs">Documentation</label>
+        
+        <a id="logo" href="index.html">
+          <div>ADI Buildroot External</div>
+        </a>
+      </span>
+      <span class="reverse">
+        <label id="show-localtoc" class="icon" for="input-show-localtoc" title="Show/hide contents"></label>
+      </span>
+    </div>
+  </header>
+
+
+  <div class="repotoc-tree overlay">
+    <root/>
+
+  </div>
+    <div class="localtoc">
+      <div class="tocwrapper">
+        <div class="header localtoc-header">
+          <a id="scroll-up" href="#top-anchor" title="Back to top"></a>
+        </div>
+        <nav>
+          <ul>
+<li><a class="reference internal" href="#">ADSP-SC846 Evaluation Kit</a><ul>
+<li><a class="reference internal" href="#build">Build</a></li>
+</ul>
+</li>
+</ul>
+
+        </nav>
+      </div>
+    </div>
+
+  
+      <div class="sphinxsidebar" role="navigation" aria-label="Main">
+        <div class="sphinxsidebarwrapper">
+    <a id="no-logo" href="index.html">
+      ADI Buildroot External
+    </a><input id="input-switch-toc" type="checkbox">
+<label id="show-repotoc" for="input-switch-toc">
+All content
+</label>
+<label id="show-toc" for="input-switch-toc">
+Content on this topic
+</label>
+<div class="repotoc-tree">
+  <root/>
+
+</div>
+<div class="toc-tree">
+  <ul class="current">
+<li class="toctree-l1 current"><input class="toctree-collapse" type="checkbox" name="toctree-collapse-1" id="toctree-collapse-1" checked=""/><div class="collapse"><a class="reference internal" href="adsp.html">ADSP</a><label for="toctree-collapse-1"><div class="icon"></div></label></div><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="sc598.html">ADSP-SC598 Evaluation Kits</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">ADSP-SC846 Evaluation Kit</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="sc598.html">ADSP-SC598 Evaluation Kits</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">ADSP-SC846 Evaluation Kit</a></li>
+<li class="toctree-l1"><a class="reference internal" href="xilinx.html">Xilinx</a></li>
+</ul>
+
+
+</div>
+        </div>
+      </div>
+
+  <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper" id="top-anchor">
+          <div class="body-header">
+  <nav class="breadcrumb"><ol><li><a href="adsp.html">ADSP</a></li></ol></nav>
+</div>
+          <div class="body" role="main">
+            
+  <section id="adsp-sc846-evaluation-kit">
+<h1>ADSP-SC846 Evaluation Kit<a class="headerlink" href="#adsp-sc846-evaluation-kit" title="Link to this heading"></a></h1>
+<p>The SC846 evaluation kit pairs the <code class="docutils literal notranslate"><span class="pre">EV-SC846-SOM</span></code> with the
+<code class="docutils literal notranslate"><span class="pre">EV-SOMCRR2-EZKIT</span></code> carrier board. The processor has two 1.2 GHz Cortex-A55
+cores and one 1.2 GHz SHARC FX core. Bare-metal or FreeRTOS applications for
+the SHARC core can be loaded by Linux through remoteproc.</p>
+<section id="build">
+<h2>Build<a class="headerlink" href="#build" title="Link to this heading"></a></h2>
+<p>From <code class="docutils literal notranslate"><span class="pre">buildroot/</span></code>, select the board and apply the debug image fragments:</p>
+<div class="highlight-bash notranslate"><div class="highlight"><pre><span></span>make<span class="w"> </span><span class="nv">BR2_EXTERNAL</span><span class="o">=</span><span class="s2">"</span><span class="si">${</span><span class="nv">PWD</span><span class="si">}</span><span class="s2">/.."</span><span class="w"> </span>adi_sc846_ezkit_defconfig
+support/kconfig/merge_config.sh<span class="w"> </span>.config<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>../configs/buildroot.fragment<span class="w"> </span><span class="se">\</span>
+<span class="w">    </span>../configs/debug.fragment
+make<span class="w"> </span>-j<span class="k">$(</span>nproc<span class="k">)</span>
+</pre></div>
+</div>
+<p>The build produces <code class="docutils literal notranslate"><span class="pre">emmc.img</span></code> and <code class="docutils literal notranslate"><span class="pre">flash.img</span></code>, the kernel <code class="docutils literal notranslate"><span class="pre">Image</span></code>, a
+FIT image, the <code class="docutils literal notranslate"><span class="pre">sc846-som-ezkit.dtb</span></code> device tree, U-Boot loaders, and the
+ext4/UBI root filesystem images in <code class="docutils literal notranslate"><span class="pre">output/images/</span></code>. The build output
+artifacts can be used to <a class="icon link reference external" href="https://analogdevicesinc.github.io/documentation/products/adsp/setup.html" target="_blank">bootstrap the
+boards</a>.</p>
+</section>
+</section>
+
+
+          </div>
+              <div class="related">
+                &nbsp;
+    <a href="sc598.html" title="Previous document (Alt+Shift+LeftArrow)" class="prev">ADSP-SC598 Evaluation Kits</a>
+    <a href="xilinx.html" title="Next document (Alt+Shift+RightArrow)" class="next">Xilinx</a>
+              </div>
+          
+        </div>
+      </div>
+  </div>
+
+  <label id="cancel-area-show-toc" for="input-show-toc"></label>
+  <label id="cancel-area-show-localtoc" for="input-show-localtoc"></label>
+    <footer>
+      &#169;2025, Analog Devices, Inc.
+      
+      |
+      Made with <a href="https://www.sphinx-doc.org/">Sphinx</a>
+      &amp; <a href="https://github.com/analogdevicesinc/doctools">Doctools</a>
+      
+    </footer>
+  </body>
+</html>
