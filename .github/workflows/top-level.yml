@@ -22,8 +22,6 @@ jobs:
             flavor: debug
           - defconfig: adi_sc598_ezkit_defconfig
             flavor: bootstrap
-          - defconfig: adi_sc598_ezkit_defconfig
-            flavor: initramfs
           - defconfig: adi_sc598_ezlite_defconfig
             flavor: debug
           - defconfig: adi_sc598_ezlite_defconfig
