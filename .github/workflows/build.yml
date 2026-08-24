@@ -77,6 +77,35 @@ jobs:
           [ -z "${{ inputs.flavor }}" ] || image_name="${image_name}-${{ inputs.flavor }}"
           echo "image_name=$image_name" >> "$GITHUB_ENV"
 
+      - name: Install graph dependencies
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: zypper install -y python3-numpy python3-matplotlib graphviz
+
+      - name: Generate build duration graphs
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          cd buildroot
+          BR2_GRAPH_OUT=png make graph-build
+
+      - name: Generate filesystem size graphs
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          cd buildroot
+          BR2_GRAPH_OUT=png make graph-size
+
+      - name: Generate dependency graph
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        run: |
+          cd buildroot
+          BR2_GRAPH_OUT=png make graph-depends
+
+      - name: Upload build graphs
+        if: ${{ github.event_name == 'workflow_dispatch' }}
+        uses: actions/upload-artifact@v6
+        with:
+          name: ${{ env.image_name }}-graphs
+          path: buildroot/output/graphs
+
       - name: Upload Buildroot images
         uses: actions/upload-artifact@v6
         with:
