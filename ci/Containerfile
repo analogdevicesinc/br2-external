@@ -8,7 +8,7 @@ ARG gh_actions_runner_sh=https://raw.githubusercontent.com/analogdevicesinc/doct
 
 RUN zypper update -y
 RUN zypper install -y --no-recommends \
-    tar unzip gzip curl jq libicu coreutils
+    tar unzip gzip curl jq libicu coreutils  update-alternatives
 
 RUN useradd -m runner
 WORKDIR /home/runner
@@ -26,6 +26,7 @@ RUN zypper install -y --no-recommends gcc gcc-c++ make glibc-devel glibc-gconv-m
 # For utils/generate-cyclonedx
 RUN zypper install -y --no-recommends \
     python313
+RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.13 313
 
 RUN mkdir -p /usr/local/bin
 WORKDIR /usr/local/bin
