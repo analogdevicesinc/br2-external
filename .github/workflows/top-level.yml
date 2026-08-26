@@ -105,9 +105,20 @@ jobs:
           overwrite: true
 
   hardware-test:
-    uses: ./.github/workflows/hw-test.yml
+    strategy:
+      fail-fast: false
+      matrix:
+        test-set:
+          - adsp/bootstrap
+        needs:
+          - '["sc598", "ezkit"]'
+          - '["sc598", "ezlite"]'
+    uses: analogdevicesinc/linux/.github/workflows/hw-test.yml@ci
     needs: [build-buildroot]
     if: ${{ github.event_name != 'schedule' && github.event_name != 'release' }}
+    with:
+      test-set: ${{ matrix.test-set }}
+      needs: ${{ matrix.needs }}
     secrets: inherit
     permissions:
       actions: read
