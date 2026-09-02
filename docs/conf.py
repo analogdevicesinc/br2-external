@@ -29,7 +29,7 @@ source_suffix = '.rst'
 
 interref_repos = [
     'hdl',
-    'documentation',
+    'system-level',
 ]
 
 intersphinx_mapping = {
