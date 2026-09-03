@@ -4,8 +4,8 @@ ADSP
 Supported Boards
 ----------------
 
-- :doc:`sc598`: ADI SC598 EZ-KIT and EZLITE.
-- :doc:`sc846`: ADI SC846 EZ-KIT.
+- :doc:`sc598`: ADI SC598 EZ-KIT and EZLITE
+- :doc:`sc846`: ADI SC846 EZ-KIT
 
 Getting Started
 ---------------
@@ -43,10 +43,6 @@ ADI Configuration Fragments
   - Enable a minimal bootstrap / installer image
   - Includes only the tools required to program boot media
 
-- ``configs/initramfs.fragment``
-
-  - Build a standalone, RAM-only file system for hardware testing
-
 Example Builds
 --------------
 
@@ -68,16 +64,6 @@ Bootstrap Image:
    support/kconfig/merge_config.sh .config \
        ../configs/buildroot.fragment \
        ../configs/bootstrap.fragment
-   make -j$(nproc)
-
-Initramfs for arm64:
-
-.. code-block:: bash
-
-   make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
-   support/kconfig/merge_config.sh .config \
-       ../configs/buildroot.fragment \
-       ../configs/initramfs.fragment
    make -j$(nproc)
 
 Board Documentation
