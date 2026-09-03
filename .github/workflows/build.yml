@@ -8,7 +8,7 @@ on:
         required: true
         type: string
       flavor:
-        description: Configuration flavor
+        description: A list of space delimited configuration flavors
         required: false
         type: string
         default: ''
@@ -40,12 +40,11 @@ jobs:
           umask 022
           make distclean
           make BR2_EXTERNAL="${PWD}/.." ${{ inputs.defconfig }}
-          support/kconfig/merge_config.sh .config \
-            "../configs/buildroot.fragment"
-          if [ -n "${{ inputs.flavor }}" ]; then
-            support/kconfig/merge_config.sh .config \
-              "../configs/${{ inputs.flavor }}.fragment"
-          fi
+          fragments="../configs/buildroot.fragment"
+          for f in ${{ inputs.flavor }}; do
+            fragments="$fragments ../configs/$f.fragment"
+          done
+          support/kconfig/merge_config.sh .config $fragments
           make -j$(nproc)
 
       - name: Build SDK
@@ -60,7 +59,8 @@ jobs:
           image_path="buildroot/output/images"
 
           defconfig="${{ inputs.defconfig }}"
-          [ -n "${{ inputs.flavor }}" ] && defconfig="${defconfig}-${{ inputs.flavor }}"
+          flavor="${{ inputs.flavor }}"
+          [ -n "$flavor" ] && defconfig="${defconfig}-${flavor// /-}"
 
           # buildroot >= 2024.05
           cd buildroot
@@ -73,7 +73,8 @@ jobs:
       - name: Prepare image names
         run: |
           image_name="${{ inputs.defconfig }}"
-          [ -z "${{ inputs.flavor }}" ] || image_name="${image_name}-${{ inputs.flavor }}"
+          flavor="${{ inputs.flavor }}"
+          [ -z "$flavor" ] || image_name="${image_name}-${flavor// /-}"
           echo "image_name=$image_name" >> "$GITHUB_ENV"
 
       - name: Upload Buildroot images
