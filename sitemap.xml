@@ -1,2 +1,10 @@
 <?xml version='1.0' encoding='utf-8'?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"><url><loc>https://analogdevicesinc.github.io/br2-external/adsp/</loc><lastmod>2026-09-03</lastmod></url><url><loc>https://analogdevicesinc.github.io/br2-external/</loc><lastmod>2026-09-03</lastmod></url><url><loc>https://analogdevicesinc.github.io/br2-external/sc598/</loc><lastmod>2026-09-03</lastmod></url><url><loc>https://analogdevicesinc.github.io/br2-external/sc846/</loc><lastmod>2026-09-03</lastmod></url><url><loc>https://analogdevicesinc.github.io/br2-external/xilinx/</loc><lastmod>2026-09-03</lastmod></url></urlset>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url><loc>https://analogdevicesinc.github.io/br2-external/adsp/</loc><lastmod>2026-09-03</lastmod></url>
+<url><loc>https://analogdevicesinc.github.io/br2-external/genindex/</loc><lastmod>2026-09-04</lastmod></url>
+<url><loc>https://analogdevicesinc.github.io/br2-external/</loc><lastmod>2026-09-03</lastmod></url>
+<url><loc>https://analogdevicesinc.github.io/br2-external/sc598/</loc><lastmod>2026-09-03</lastmod></url>
+<url><loc>https://analogdevicesinc.github.io/br2-external/sc846/</loc><lastmod>2026-09-03</lastmod></url>
+<url><loc>https://analogdevicesinc.github.io/br2-external/search/</loc><lastmod>2026-09-04</lastmod></url>
+<url><loc>https://analogdevicesinc.github.io/br2-external/xilinx/</loc><lastmod>2026-09-03</lastmod></url>
+</urlset>
