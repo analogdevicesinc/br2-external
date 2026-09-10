@@ -106,9 +106,20 @@ jobs:
           overwrite: true
 
   hardware-test:
-    uses: ./.github/workflows/hw-test.yml
-    needs: [build-buildroot]
+    needs: [bundle]
     if: ${{ !inputs.skip-hw-test && github.event_name != 'release' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        test-set: [adsp/u-boot, adsp/bootstrap, adsp/initramfs-boot]
+        needs:
+          - '["sc598", "ezkit"]'
+          - '["sc598", "ezlite"]'
+          - '["sc846", "ezkit"]'
+    uses: analogdevicesinc/hw-test/.github/workflows/run-test.yml@main
+    with:
+      set: >-
+        {"name":"${{ matrix.test-set }}","needs":${{ matrix.needs }}}
     secrets: inherit
     permissions:
       actions: read
