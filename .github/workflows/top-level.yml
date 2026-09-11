@@ -116,7 +116,7 @@ jobs:
           - '["sc598", "ezkit"]'
           - '["sc598", "ezlite"]'
           - '["sc846", "ezkit"]'
-    uses: analogdevicesinc/hw-test/.github/workflows/run-test.yml@main
+    uses: analogdevicesinc/hw-test/.github/workflows/run-test.yml@add-runner-tag-selection
     with:
       set: >-
         {"name":"${{ matrix.test-set }}","needs":${{ matrix.needs }}}
