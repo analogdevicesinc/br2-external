@@ -31,3 +31,27 @@ FIT image, device trees for both carrier boards, U-Boot loaders, and the
 ext4/UBI root filesystem images in ``output/images/``. The build output
 artifacts can be used to `bootstrap the
 boards <https://analogdevicesinc.github.io/documentation/products/adsp/setup.html>`_.
+
+HTOL board
+----------
+
+The SC598 HTOL (high-temperature operating life) board is a reliability-test
+fixture. It uses SPI flash rather than eMMC. It reuses the EV-SC598-SOM EZ-KIT
+defconfig with ``configs/htol.fragment``, which selects the HTOL U-Boot
+configuration and applies its system settings.
+
+The ``sc598-htol`` device tree is already included in the FIT image. Buildroot
+includes the device trees for all SC598 boards in that image, allowing one
+root filesystem image to support each board. To build an HTOL image locally,
+use the EZ-KIT defconfig and add ``../configs/htol.fragment`` after the usual
+configuration fragments in the example above.
+
+HTOL images are built on demand, not in the default CI matrix. In the `Build
+ADI artifacts workflow <https://github.com/analogdevicesinc/br2-external/actions/workflows/build.yml>`_, click *Run workflow* and enter:
+
+* ``defconfig``: ``adi_sc598_ezkit_defconfig``
+* ``flavor``: ``debug htol``
+
+Each flavor names a Kconfig fragment in ``configs/``. For a bootstrap image,
+use ``bootstrap htol``. List ``htol`` last so its settings override earlier
+fragments.
