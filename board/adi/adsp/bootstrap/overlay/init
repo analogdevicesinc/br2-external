@@ -97,10 +97,10 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
 
     echo
     echo "---- eMMC ----"
-    echo "Downloading ${BASE_URL}/debug/emmc.img.gz to ${EMMC_DEV}..."
+    echo "Downloading ${BASE_URL}/debug/emmc.img to ${EMMC_DEV}..."
 
-    if ! wget -O - "${BASE_URL}/debug/emmc.img.gz" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
-        rescue_shell "ERROR: Failed to download, decompress, or write emmc.img.gz"
+    if ! wget -O - "${BASE_URL}/debug/emmc.img" | dd of="$EMMC_DEV" bs=64K conv=fsync; then
+        rescue_shell "ERROR: Failed to download or write emmc.img"
     fi
 
     echo "eMMC install complete."
