@@ -8,6 +8,7 @@ set -e
 set -o pipefail
 
 EMMC_DEV=/dev/mmcblk0
+NAND_DEV=/dev/mtd5
 RCU0_STAT=0x3108C004
 BITP_RCU_STAT_BMODE=8
 BITM_RCU_STAT_BMODE=0x00000F00
@@ -52,20 +53,21 @@ case "$ans" in
 esac
 
 echo
-echo "======== Install Image on eMMC ========"
+echo "======== Install Image ========"
 echo
 echo "Select what to install:"
-echo "  1) Buildroot kernel and root filesystem"
-echo "  2) Buildroot kernel and Fedora root filesystem"
+echo "  1) Buildroot kernel and root filesystem (eMMC)"
+echo "  2) Buildroot kernel and Fedora root filesystem (eMMC)"
+echo "  3) Buildroot NAND image"
 echo "  0) Skip"
 echo
-printf "Choice [0/1/2]: "
+printf "Choice [0/1/2/3]: "
 read -r INSTALL_CHOICE
 
 case "$INSTALL_CHOICE" in
-  1|2) ;;
+  1|2|3) ;;
   *)
-    echo "Skipping eMMC install."
+    echo "Skipping install."
     INSTALL_CHOICE=0
     ;;
 esac
@@ -77,7 +79,7 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
     read -r PC_IP
 
     if [ -z "$PC_IP" ]; then
-        rescue_shell "No IP entered, eMMC install aborted."
+        rescue_shell "No IP entered, install aborted."
     fi
 
     echo "Configuring network..."
@@ -95,44 +97,58 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
             ;;
     esac
 
-    echo
-    echo "---- eMMC ----"
-    echo "Downloading ${BASE_URL}/debug/emmc.img.gz to ${EMMC_DEV}..."
+    if [ "$INSTALL_CHOICE" = "1" ] || [ "$INSTALL_CHOICE" = "2" ]; then
+        echo
+        echo "---- eMMC ----"
+        echo "Downloading ${BASE_URL}/debug/emmc.img.gz to ${EMMC_DEV}..."
 
-    if ! wget -O - "${BASE_URL}/debug/emmc.img.gz" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
-        rescue_shell "ERROR: Failed to download, decompress, or write emmc.img.gz"
+        if ! wget -O - "${BASE_URL}/debug/emmc.img.gz" | gunzip -c | dd of="$EMMC_DEV" bs=64K conv=fsync; then
+            rescue_shell "ERROR: Failed to download, decompress, or write emmc.img.gz"
+        fi
+
+        echo "eMMC install complete."
+
+        if [ "$INSTALL_CHOICE" = "2" ]; then
+            echo
+            echo "---- Rootfs ----"
+            ROOTFS_URL="${BASE_URL}/fedora/adsp-arm64-rootfs.tar.zst"
+            ROOTFS_PART="${EMMC_DEV}p2"
+            ROOTFS_MNT=/mnt/rootfs
+
+            blockdev --rereadpt "$EMMC_DEV"
+
+            echo "Formatting ${ROOTFS_PART} as ext4..."
+            if ! mkfs.ext4 -F "$ROOTFS_PART"; then
+                rescue_shell "ERROR: Failed to format ${ROOTFS_PART}."
+            fi
+
+            mkdir -p "$ROOTFS_MNT"
+            if ! mount "$ROOTFS_PART" "$ROOTFS_MNT"; then
+                rescue_shell "ERROR: Failed to mount ${ROOTFS_PART}."
+            fi
+
+            echo "Downloading and extracting ${ROOTFS_URL}..."
+            if ! wget -O - "$ROOTFS_URL" | zstd -d | tar -xf - -C "$ROOTFS_MNT"; then
+                umount "$ROOTFS_MNT"
+                rescue_shell "ERROR: Failed to download or extract adsp-arm64-rootfs.tar.zst"
+            fi
+
+            umount "$ROOTFS_MNT"
+            sync
+            echo "Rootfs install complete."
+        fi
     fi
 
-    echo "eMMC install complete."
-
-    if [ "$INSTALL_CHOICE" = "2" ]; then
+    if [ "$INSTALL_CHOICE" = "3" ]; then
         echo
-        echo "---- Rootfs ----"
-        ROOTFS_URL="${BASE_URL}/fedora/adsp-arm64-rootfs.tar.zst"
-        ROOTFS_PART="${EMMC_DEV}p2"
-        ROOTFS_MNT=/mnt/rootfs
+        echo "---- NAND ----"
+        echo "Downloading ${BASE_URL}/debug/nand.img to ${NAND_DEV}..."
 
-        blockdev --rereadpt "$EMMC_DEV"
-
-        echo "Formatting ${ROOTFS_PART} as ext4..."
-        if ! mkfs.ext4 -F "$ROOTFS_PART"; then
-            rescue_shell "ERROR: Failed to format ${ROOTFS_PART}."
+        if ! wget -O - "${BASE_URL}/debug/nand.img" | ubiformat "$NAND_DEV" -f - -y; then
+            rescue_shell "ERROR: Failed to download or write nand.img"
         fi
 
-        mkdir -p "$ROOTFS_MNT"
-        if ! mount "$ROOTFS_PART" "$ROOTFS_MNT"; then
-            rescue_shell "ERROR: Failed to mount ${ROOTFS_PART}."
-        fi
-
-        echo "Downloading and extracting ${ROOTFS_URL}..."
-        if ! wget -O - "$ROOTFS_URL" | zstd -d | tar -xf - -C "$ROOTFS_MNT"; then
-            umount "$ROOTFS_MNT"
-            rescue_shell "ERROR: Failed to download or extract adsp-arm64-rootfs.tar.zst"
-        fi
-
-        umount "$ROOTFS_MNT"
-        sync
-        echo "Rootfs install complete."
+        echo "NAND install complete."
     fi
 fi
 
