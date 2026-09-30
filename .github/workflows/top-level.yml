@@ -16,7 +16,35 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate-release-tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout release tag
+        if: ${{ github.event_name == 'release' }}
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Require an annotated release tag
+        if: ${{ github.event_name == 'release' }}
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          object_type="$(git cat-file -t "refs/tags/$TAG")"
+          if [ "$object_type" != tag ]; then
+            echo "Release tag $TAG must be annotated; found $object_type"
+            echo "Create and push the tag before publishing the release:"
+            echo "  git tag -a $TAG -m \"Release $TAG\" <commit>"
+            echo "  git push origin $TAG"
+            echo "Then select the existing tag in the GitHub Release UI."
+            exit 1
+          fi
+
   build-buildroot:
+    needs: validate-release-tag
     strategy:
       fail-fast: false
       matrix:
@@ -44,6 +72,7 @@ jobs:
       contents: write
 
   build-mkosi-fedora:
+    needs: validate-release-tag
     uses: ./.github/workflows/fedora.yml
     permissions:
       contents: write
