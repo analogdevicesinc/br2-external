@@ -41,10 +41,19 @@ setup_network() {
 	fi
 
 	echo "Configuring network..."
+	NET_OK=0
 	for NET_IFACE in $(ip -o link show | awk -F': ' '!/lo/ && !/LOOPBACK/ {print $2}'); do
 		ip link set "$NET_IFACE" up
-		udhcpc -i "$NET_IFACE" -n -q -T 3 && break
+		if udhcpc -i "$NET_IFACE" -n -q -T 3; then
+			NET_OK=1
+			break
+		fi
 	done
+
+	if [ "$NET_OK" != "1" ]; then
+		echo "ERROR: Failed to configure network on any interface."
+		return 1
+	fi
 
 	case "$PC_IP" in
 		*:*)
@@ -192,13 +201,19 @@ install_nand() {
 
 	echo
 	echo "---- NAND ----"
-	echo "Downloading ${BASE_URL}/debug/nand.img to ${NAND_DEV}..."
 
-	if ! wget -O - "${BASE_URL}/debug/nand.img" | ubiformat "$NAND_DEV" -f - -y; then
-		echo "ERROR: Failed to download or write nand.img"
+	echo "Downloading ${BASE_URL}/debug/nand.img..."
+	if ! wget -O /tmp/nand.img "${BASE_URL}/debug/nand.img"; then
+		echo "ERROR: Failed to download nand.img."
 		return 1
 	fi
 
+	if ! ubiformat "$NAND_DEV" -f /tmp/nand.img -y; then
+		echo "ERROR: Failed to write nand.img to ${NAND_DEV}."
+		return 1
+	fi
+
+	rm -f /tmp/nand.img
 	sync
 	echo "NAND install complete."
 }
@@ -231,7 +246,7 @@ while true; do
 	echo "  1) Install U-Boot to SPI flash"
 	echo "  2) Buildroot kernel and root filesystem (eMMC)"
 	echo "  3) Buildroot kernel and Fedora root filesystem (eMMC)"
-	echo "  4) Buildroot kernel and root filesystem (NAND)"
+	echo "  4) Buildroot overlay and data (NAND)"
 	echo "  5) Buildroot kernel and root filesystem (SPI NOR)"
 	echo "  0) Reboot"
 	echo "  s) Rescue shell"
