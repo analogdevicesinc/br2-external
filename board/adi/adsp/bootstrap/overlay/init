@@ -142,6 +142,49 @@ install_emmc_fedora() {
 	echo "Rootfs install complete."
 }
 
+install_spi_nor() {
+	if ! setup_network; then
+		return 1
+	fi
+
+	echo
+	echo "---- SPI NOR (kernel + rootfs) ----"
+
+	echo "Downloading ${BASE_URL}/debug/kernel.itb..."
+	if ! wget -O /tmp/kernel.itb "${BASE_URL}/debug/kernel.itb"; then
+		echo "ERROR: Failed to download kernel.itb."
+		return 1
+	fi
+
+	echo "Downloading ${BASE_URL}/debug/rootfs.erofs..."
+	if ! wget -O /tmp/rootfs.erofs "${BASE_URL}/debug/rootfs.erofs"; then
+		echo "ERROR: Failed to download rootfs.erofs."
+		return 1
+	fi
+
+	if ! flash_erase /dev/mtd2 0 0; then
+		echo "ERROR: Failed to erase mtd2 (kernel)."
+		return 1
+	fi
+	if ! flashcp /tmp/kernel.itb /dev/mtd2; then
+		echo "ERROR: Failed to write kernel.itb to mtd2."
+		return 1
+	fi
+
+	if ! flash_erase /dev/mtd3 0 0; then
+		echo "ERROR: Failed to erase mtd3 (rootfs)."
+		return 1
+	fi
+	if ! flashcp /tmp/rootfs.erofs /dev/mtd3; then
+		echo "ERROR: Failed to write rootfs.erofs to mtd3."
+		return 1
+	fi
+
+	rm -f /tmp/kernel.itb /tmp/rootfs.erofs
+	sync
+	echo "SPI NOR kernel + rootfs install complete."
+}
+
 install_nand() {
 	if ! setup_network; then
 		return 1
@@ -189,6 +232,7 @@ while true; do
 	echo "  2) Buildroot kernel and root filesystem (eMMC)"
 	echo "  3) Buildroot kernel and Fedora root filesystem (eMMC)"
 	echo "  4) Buildroot kernel and root filesystem (NAND)"
+	echo "  5) Buildroot kernel and root filesystem (SPI NOR)"
 	echo "  0) Reboot"
 	echo "  s) Rescue shell"
 	echo
@@ -200,6 +244,7 @@ while true; do
 		2) install_emmc ;;
 		3) install_emmc_fedora ;;
 		4) install_nand ;;
+		5) install_spi_nor ;;
 		0) do_reboot ;;
 		s) rescue_shell ;;
 		*) echo "Invalid choice." ;;
