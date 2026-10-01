@@ -41,10 +41,19 @@ setup_network() {
 	fi
 
 	echo "Configuring network..."
+	NET_OK=0
 	for NET_IFACE in $(ip -o link show | awk -F': ' '!/lo/ && !/LOOPBACK/ {print $2}'); do
 		ip link set "$NET_IFACE" up
-		udhcpc -i "$NET_IFACE" -n -q -T 3 && break
+		if udhcpc -i "$NET_IFACE" -n -q -T 3; then
+			NET_OK=1
+			break
+		fi
 	done
+
+	if [ "$NET_OK" != "1" ]; then
+		echo "ERROR: Failed to configure network on any interface."
+		return 1
+	fi
 
 	case "$PC_IP" in
 		*:*)
@@ -62,19 +71,11 @@ install_spi_uboot() {
 	echo
 	echo "---- SPI Flash (U-Boot) ----"
 
-	if ! flash_erase /dev/mtd0 0 0; then
-		echo "ERROR: Failed to erase mtd0."
-		return 1
-	fi
 	if ! flashcp /lib/firmware/u-boot-spl.ldr /dev/mtd0; then
 		echo "ERROR: Failed to write u-boot-spl.ldr to mtd0."
 		return 1
 	fi
 
-	if ! flash_erase /dev/mtd1 0 0; then
-		echo "ERROR: Failed to erase mtd1."
-		return 1
-	fi
 	if ! flashcp /lib/firmware/u-boot.ldr /dev/mtd1; then
 		echo "ERROR: Failed to write u-boot.ldr to mtd1."
 		return 1
@@ -162,19 +163,11 @@ install_spi_nor() {
 		return 1
 	fi
 
-	if ! flash_erase /dev/mtd2 0 0; then
-		echo "ERROR: Failed to erase mtd2 (kernel)."
-		return 1
-	fi
 	if ! flashcp /tmp/kernel.itb /dev/mtd2; then
 		echo "ERROR: Failed to write kernel.itb to mtd2."
 		return 1
 	fi
 
-	if ! flash_erase /dev/mtd3 0 0; then
-		echo "ERROR: Failed to erase mtd3 (rootfs)."
-		return 1
-	fi
 	if ! flashcp /tmp/rootfs.erofs /dev/mtd3; then
 		echo "ERROR: Failed to write rootfs.erofs to mtd3."
 		return 1
@@ -192,13 +185,19 @@ install_nand() {
 
 	echo
 	echo "---- NAND ----"
-	echo "Downloading ${BASE_URL}/debug/nand.img to ${NAND_DEV}..."
 
-	if ! wget -O - "${BASE_URL}/debug/nand.img" | ubiformat "$NAND_DEV" -f - -y; then
-		echo "ERROR: Failed to download or write nand.img"
+	echo "Downloading ${BASE_URL}/debug/nand.img..."
+	if ! wget -O /tmp/nand.img "${BASE_URL}/debug/nand.img"; then
+		echo "ERROR: Failed to download nand.img."
 		return 1
 	fi
 
+	if ! ubiformat "$NAND_DEV" -f /tmp/nand.img -y; then
+		echo "ERROR: Failed to write nand.img to ${NAND_DEV}."
+		return 1
+	fi
+
+	rm -f /tmp/nand.img
 	sync
 	echo "NAND install complete."
 }
