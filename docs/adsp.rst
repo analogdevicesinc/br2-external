@@ -50,7 +50,7 @@ Debug Image:
 
 .. code-block:: bash
 
-   make BR2_EXTERNAL="${PWD}/.." adi_sc598_ezkit_defconfig
+   make BR2_EXTERNAL="${PWD}/.." adi_sc846_ezkit_defconfig
    support/kconfig/merge_config.sh .config \
        ../configs/buildroot.fragment \
        ../configs/debug.fragment
