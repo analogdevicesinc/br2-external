@@ -7,6 +7,7 @@ mount -t devtmpfs devtmpfs /dev
 set -o pipefail
 
 EMMC_DEV=/dev/mmcblk0
+NAND_DEV=/dev/mtd5
 RCU0_STAT=0x3108C004
 BITP_RCU_STAT_BMODE=8
 BITM_RCU_STAT_BMODE=0x00000F00
@@ -141,6 +142,24 @@ install_emmc_fedora() {
 	echo "Rootfs install complete."
 }
 
+install_nand() {
+	if ! setup_network; then
+		return 1
+	fi
+
+	echo
+	echo "---- NAND ----"
+	echo "Downloading ${BASE_URL}/debug/nand.img to ${NAND_DEV}..."
+
+	if ! wget -O - "${BASE_URL}/debug/nand.img" | ubiformat "$NAND_DEV" -f - -y; then
+		echo "ERROR: Failed to download or write nand.img"
+		return 1
+	fi
+
+	sync
+	echo "NAND install complete."
+}
+
 do_reboot() {
 	echo
 	echo "Set the switch S1 to position 1 (SPI boot)."
@@ -169,6 +188,7 @@ while true; do
 	echo "  1) Install U-Boot to SPI flash"
 	echo "  2) Buildroot kernel and root filesystem (eMMC)"
 	echo "  3) Buildroot kernel and Fedora root filesystem (eMMC)"
+	echo "  4) Buildroot kernel and root filesystem (NAND)"
 	echo "  0) Reboot"
 	echo "  s) Rescue shell"
 	echo
@@ -179,6 +199,7 @@ while true; do
 		1) install_spi_uboot ;;
 		2) install_emmc ;;
 		3) install_emmc_fedora ;;
+		4) install_nand ;;
 		0) do_reboot ;;
 		s) rescue_shell ;;
 		*) echo "Invalid choice." ;;
