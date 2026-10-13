@@ -57,13 +57,14 @@ echo
 echo "Select what to install:"
 echo "  1) Buildroot kernel and root filesystem"
 echo "  2) Buildroot kernel and Fedora root filesystem"
+echo "  3) Kuiper Linux 2 (Debian Trixie)"
 echo "  0) Skip"
 echo
-printf "Choice [0/1/2]: "
+printf "Choice [0/1/2/3]: "
 read -r INSTALL_CHOICE
 
 case "$INSTALL_CHOICE" in
-  1|2) ;;
+  1|2|3) ;;
   *)
     echo "Skipping eMMC install."
     INSTALL_CHOICE=0
@@ -105,10 +106,14 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
 
     echo "eMMC install complete."
 
-    if [ "$INSTALL_CHOICE" = "2" ]; then
+    case "$INSTALL_CHOICE" in
+        2) ROOTFS_URL="${BASE_URL}/fedora/adsp-arm64-rootfs.tar.zst" ;;
+        3) ROOTFS_URL="${BASE_URL}/kuiper/kuiper-rootfs.tar.zst" ;;
+    esac
+
+    if [ -n "${ROOTFS_URL:-}" ]; then
         echo
         echo "---- Rootfs ----"
-        ROOTFS_URL="${BASE_URL}/fedora/adsp-arm64-rootfs.tar.zst"
         ROOTFS_PART="${EMMC_DEV}p2"
         ROOTFS_MNT=/mnt/rootfs
 
@@ -127,7 +132,7 @@ if [ "$INSTALL_CHOICE" != "0" ]; then
         echo "Downloading and extracting ${ROOTFS_URL}..."
         if ! wget -O - "$ROOTFS_URL" | zstd -d | tar -xf - -C "$ROOTFS_MNT"; then
             umount "$ROOTFS_MNT"
-            rescue_shell "ERROR: Failed to download or extract adsp-arm64-rootfs.tar.zst"
+            rescue_shell "ERROR: Failed to download or extract rootfs"
         fi
 
         umount "$ROOTFS_MNT"
