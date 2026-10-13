@@ -48,8 +48,13 @@ jobs:
     permissions:
       contents: write
 
+  build-kuiper:
+    uses: ./.github/workflows/kuiper.yml
+    permissions:
+      contents: read
+
   bundle:
-    needs: [build-buildroot, build-mkosi-fedora]
+    needs: [build-buildroot, build-mkosi-fedora, build-kuiper]
     strategy:
       matrix:
         include:
@@ -81,6 +86,12 @@ jobs:
         with:
           name: ${{ matrix.rootfs }}
           path: images/fedora
+
+      - name: Download Kuiper artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: kuiper-rootfs
+          path: images/kuiper
 
       - name: Upload bundle artifact
         uses: actions/upload-artifact@v6
