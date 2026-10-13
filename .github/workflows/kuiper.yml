@@ -1,0 +1,66 @@
+name: Build Kuiper Trixie ARM64 rootfs
+
+on:
+  workflow_dispatch:
+  workflow_call:
+
+permissions:
+  contents: read
+
+env:
+  KUIPER_REF: 2.1.0
+
+jobs:
+  build-rootfs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout br2-external
+        uses: actions/checkout@v6
+        with:
+          path: br2-external
+
+      - name: Checkout Kuiper
+        uses: actions/checkout@v6
+        with:
+          repository: analogdevicesinc/kuiper
+          ref: ${{ env.KUIPER_REF }}
+          path: kuiper
+
+      - name: Configure headless ADSP root filesystem
+        run: |
+          install -m 0755 \
+            br2-external/ci/kuiper/rootfs-config.sh \
+            kuiper/stages/07.extra-tweaks/01.extra-scripts/adsp.sh
+          kuiper/ci/modify_config.sh kuiper/config \
+            "TARGET_ARCHITECTURE=arm64 DEBIAN_VERSION=trixie HOSTNAME=adsp CONFIG_DESKTOP=n CONFIG_RPI_BOOT_FILES=n CONFIG_ARCH_ZYNQ=n CONFIG_ARCH_ARRIA10=n CONFIG_ARCH_CYCLONE5=n CONFIG_ARCH_ZYNQMP=n CONFIG_ARCH_VERSAL=n INSTALL_RPI_PACKAGES=n"
+          sed -i \
+            's|^EXTRA_SCRIPT=.*|EXTRA_SCRIPT=stages/07.extra-tweaks/01.extra-scripts/adsp.sh|' \
+            kuiper/config
+          for setting in \
+            TARGET_ARCHITECTURE=arm64 DEBIAN_VERSION=trixie HOSTNAME=adsp \
+            CONFIG_DESKTOP=n CONFIG_RPI_BOOT_FILES=n CONFIG_ARCH_ZYNQ=n \
+            CONFIG_ARCH_ARRIA10=n CONFIG_ARCH_CYCLONE5=n CONFIG_ARCH_ZYNQMP=n \
+            CONFIG_ARCH_VERSAL=n INSTALL_RPI_PACKAGES=n \
+            EXTRA_SCRIPT=stages/07.extra-tweaks/01.extra-scripts/adsp.sh; do
+            grep -Fqx "$setting" kuiper/config
+          done
+
+      - name: Build Kuiper image
+        working-directory: kuiper
+        run: sudo KUIPER_VARIANT=adsp bash build-docker.sh
+
+      - name: Install rootfs export tools
+        run: sudo apt-get update -q && sudo apt-get install -y unzip zstd
+
+      - name: Export rootfs
+        run: |
+          sudo br2-external/ci/kuiper/export-rootfs.sh \
+            kuiper/kuiper-volume/image_*-ADI-Kuiper-Linux-arm64.zip \
+            kuiper-rootfs.tar.zst
+
+      - name: Upload Kuiper rootfs
+        uses: actions/upload-artifact@v6
+        with:
+          name: kuiper-rootfs
+          path: kuiper-rootfs.tar.zst
+          retention-days: 30
