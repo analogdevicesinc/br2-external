@@ -35,6 +35,7 @@ jobs:
             flavor: bootstrap
           - defconfig: zynq_pluto_defconfig
           - defconfig: zynq_m2k_defconfig
+          - defconfig: zynq_sharkbyte_defconfig
           - defconfig: microblaze_adi_rootfs_defconfig
     uses: ./.github/workflows/build.yml
     with:
