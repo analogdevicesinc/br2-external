@@ -1,0 +1,56 @@
+// SPDX-License-Identifier: (GPL-2.0+)
+/*
+ * Copyright (C) 2026 Analog Devices, Inc.
+ */
+/dts-v1/;
+
+#include "devkit-e8.dts"
+#include <dt-bindings/interrupt-controller/irq.h>
+#include <dt-bindings/iio/adi,ad5592r.h>
+
+&i2c0 {
+	clock-frequency = <400000>;
+	status = "okay";
+
+	adxl345@53 {
+		compatible = "adi,adxl345";
+		reg = <0x53>;
+	};
+
+	ad5593r@10 {
+		compatible = "adi,ad5593r";
+		reg = <0x10>;
+		#address-cells = <1>;
+		#size-cells = <0>;
+
+		channel@0 {
+			reg = <0>;
+			adi,mode = <CH_MODE_ADC>;
+		};
+	};
+
+	adt7420@48 {
+		compatible = "adi,adt7420";
+		reg = <0x48>;
+	};
+
+	heart-rate@57 {
+		compatible = "maxim,max30100";
+		reg = <0x57>;
+		pinctrl-names = "default";
+		pinctrl-0 = <&pinctrl_click_int>;
+		interrupts-extended = <&port8 1 IRQ_TYPE_EDGE_FALLING>;
+	};
+};
+
+&eth0 {
+	/* To avoid IP conflicts */
+	/delete-property/ mac-address;
+	status = "okay";
+};
+
+&pinmux {
+	pinctrl_click_int: click-intgrp {
+		pinmux = <PIN_P8_1__GPIO 0x23>;
+	};
+};
