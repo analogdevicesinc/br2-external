@@ -1,0 +1,58 @@
+// SPDX-License-Identifier: GPL-2.0
+/*
+ * Copyright (c) 2026 Analog Devices Incorporated
+ */
+
+/dts-v1/;
+
+#include "sc598-som-revE.dtsi"
+
+/ {
+  model = "ADI SC598-SOM with NAND";
+  compatible = "adi,sc598-som-nand", "adi,sc59x-64";
+};
+
+&spi2 {
+	/delete-node/ is25lp01g@1;
+
+	som_flash: spi-nand@1 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "spi-nand";
+		reg = <1>;
+		spi-max-frequency = <25000000>;
+		spi-rx-bus-width = <4>;
+		spi-tx-bus-width = <4>;
+
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
+
+			partition@0 {
+				label = "u-boot-spl";
+				reg = <0x0 0x40000>;
+			};
+
+			partition@40000 {
+				label = "u-boot";
+				reg = <0x40000 0xC0000>;
+			};
+
+			partition@100000 {
+				label = "dtb";
+				reg = <0x100000 0x40000>;
+			};
+
+			partition@140000 {
+				label = "kernel";
+				reg = <0x140000 0x2000000>;
+			};
+
+			partition@2140000 {
+				label = "rootfs";
+				reg = <0x2140000 0x3DEC0000>;
+			};
+		};
+	};
+};
