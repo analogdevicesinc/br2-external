@@ -36,6 +36,8 @@ jobs:
           - defconfig: zynq_pluto_defconfig
           - defconfig: zynq_m2k_defconfig
           - defconfig: microblaze_adi_rootfs_defconfig
+          - defconfig: alif_devkit_e8_defconfig
+            flavor: alif
     uses: ./.github/workflows/build.yml
     with:
       defconfig: ${{ matrix.defconfig }}
