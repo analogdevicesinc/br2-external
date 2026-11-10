@@ -55,9 +55,21 @@ on:
         description: "Review strategy"
         type: string
         default: "commit"
+      checkout-path:
+        description: "Path to checkout the repository to review"
+        type: string
+        default: "."
+      app-token-repositories:
+        description: "Repositories to scope a GitHub App Token to"
+        type: string
+        default: ""
     secrets:
       PORTKEY_API_KEY:
         required: true
+      APP_CLIENT_ID:
+        required: false
+      APP_PRIVATE_KEY:
+        required: false
 
 jobs:
   llm:
@@ -221,10 +233,33 @@ jobs:
             --depth 1 --filter=blob:none --sparse -- buildroot-docs
           git -C buildroot-docs sparse-checkout set docs/manual support/scripts
 
+      - uses: actions/create-github-app-token@v3
+        if: ${{ inputs.app-token-repositories != '' }}
+        id: app-token
+        with:
+          app-id: ${{ secrets.APP_CLIENT_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ inputs.app-token-repositories }}
+          permission-contents: read
+          permission-pull-requests: read
+
+      - name: Persist token
+        if: ${{ inputs.app-token-repositories != '' }}
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: |
+          { git config --global --get-regexp '^url\..*\.insteadOf$' || :; } |
+            awk '$2 == "https://github.com/" { print $1 }' |
+            xargs -r -n1 git config --global --unset-all
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
+
       - uses: analogdevicesinc/doctools/llm@action
         id: llm
         with:
           ref: ${{ inputs.ref }}
+          gh-token: ${{ steps.app-token.outputs.token || github.token }}
+          checkout-path: ${{ inputs.checkout-path || '.' }}
           model: ${{ inputs.model || 'medium' }}
           prompt-file: ${{ env.prompt_file }}
           api-key: ${{ secrets.PORTKEY_API_KEY }}
@@ -233,7 +268,10 @@ jobs:
       - name: Clean-up
         if: always()
         shell: bash
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
         run: |
+          git config --global --remove-section "url.https://x-access-token:${GH_TOKEN}@github.com/" || :
           rm -f "$prompt_file"
           rm -rf "$py_venv"
           rm -rf buildroot-docs
