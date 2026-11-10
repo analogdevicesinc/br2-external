@@ -6,6 +6,7 @@ file=/sys/kernel/config/usb_gadget/composite_gadget/functions/mass_storage.0/lun
 bootimage=/mnt/msd/boot.frm
 conf=/mnt/msd/config.txt
 img=/opt/vfat.img
+zip_prefix=${FW_ZIP_PREFIX:-$TARGET}
 
 ini_parser() {
  FILE=$1
@@ -213,11 +214,11 @@ do
 	mkdir -p /mnt/msd
 	mount /dev/loop7 /mnt/msd
 
-	if [[ -s /mnt/msd/$TARGET-fw-*.zip ]]
+	if [[ -s /mnt/msd/$zip_prefix-fw-*.zip ]]
 	then
-		mv /mnt/msd/$TARGET-fw-*.zip /opt/
-		unzip -o /opt/$TARGET-fw-*.zip *.frm -d /mnt/msd
-		rm /opt/$TARGET-fw-*.zip
+		mv /mnt/msd/$zip_prefix-fw-*.zip /opt/
+		unzip -o /opt/$zip_prefix-fw-*.zip *.frm -d /mnt/msd
+		rm /opt/$zip_prefix-fw-*.zip
 	fi
 
 	if [[ -s ${FIRMWARE} ]]
