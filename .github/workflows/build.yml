@@ -3,6 +3,10 @@ name: Build ADI artifacts
 on:
   workflow_dispatch:
     inputs:
+      runner:
+        description: 'Runner (defaults to vars.RUNNER)'
+        type: string
+        default: ""
       defconfig:
         description: Buildroot defconfig
         required: true
@@ -12,8 +16,15 @@ on:
         required: false
         type: string
         default: ''
+      app-token-repositories:
+        description: "Repositories to scope a GitHub App Token to"
+        type: string
+        default: ""
   workflow_call:
     inputs:
+      runner:
+        type: string
+        default: ""
       defconfig:
         required: true
         type: string
@@ -21,18 +32,47 @@ on:
         required: false
         type: string
         default: ''
+      app-token-repositories:
+        type: string
+        default: ""
+    secrets:
+      APP_CLIENT_ID:
+        required: false
+      APP_PRIVATE_KEY:
+        required: false
 
 jobs:
   build:
-    runs-on: ${{ vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
+    runs-on: ${{ inputs.runner != '' && fromJSON(inputs.runner) || vars.RUNNER != '' && fromJSON(vars.RUNNER) || 'ubuntu-latest' }}
     permissions:
       contents: write
 
     steps:
-      - name: Checkout br2-external
-        uses: actions/checkout@v6
+      - uses: actions/create-github-app-token@v3
+        if: ${{ github.repository_owner == 'adi-innersource' }}
+        id: app-token
         with:
+          app-id: ${{ secrets.APP_CLIENT_ID  }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY  }}
+          owner: ${{ github.repository_owner }}
+          repositories: ${{ inputs.app-token-repositories }}
+          permission-contents: read
+
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          token: ${{ steps.app-token.outputs.token || github.token }}
           submodules: recursive
+          persist-credentials: false
+
+      - name: Persist token
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+        run: |
+          { git config --global --get-regexp '^url\..*\.insteadOf$' || :; } |
+            awk '$2 == "https://github.com/" { print $1 }' |
+            xargs -r -n1 git config --global --unset-all
+          git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
 
       - name: Build image
         run: |
@@ -82,3 +122,10 @@ jobs:
           name: ${{ env.image_name }}
           path: buildroot/output/images
 
+      - name: Clean-up
+        if: always()
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token || github.token }}
+        run: |
+          git config --global --remove-section \
+            "url.https://x-access-token:${GH_TOKEN}@github.com/" || :
