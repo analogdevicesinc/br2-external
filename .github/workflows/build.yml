@@ -97,12 +97,16 @@ jobs:
           umask 022
           make distclean
           make BR2_EXTERNAL="${br2_external}" ${{ inputs.defconfig }}
-          support/kconfig/merge_config.sh .config \
-            "${br2_base}/configs/buildroot.fragment"
-          if [ -n "${{ inputs.flavor }}" ]; then
-            support/kconfig/merge_config.sh .config \
-              "${br2_base}/configs/${{ inputs.flavor }}.fragment"
-          fi
+          fragments=()
+          for name in buildroot ${{ inputs.flavor }}; do
+            found=
+            for tree in ${br2_external}; do
+              f="${tree}/configs/${name}.fragment"
+              [ -f "$f" ] && fragments+=("$f") && found=y
+            done
+            [ -n "$found" ] || { echo "::error::${name}.fragment not found"; exit 1; }
+          done
+          support/kconfig/merge_config.sh .config "${fragments[@]}"
           make -j$(nproc)
 
       - name: Build SDK
