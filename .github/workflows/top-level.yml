@@ -36,7 +36,7 @@ jobs:
           - defconfig: zynq_pluto_defconfig
           - defconfig: zynq_m2k_defconfig
           - defconfig: microblaze_adi_rootfs_defconfig
-    uses: ./.github/workflows/build.yml
+    uses: analogdevicesinc/br2-external/.github/workflows/build.yml@main
     with:
       defconfig: ${{ matrix.defconfig }}
       flavor: ${{ matrix.flavor }}
@@ -44,7 +44,7 @@ jobs:
       contents: write
 
   build-mkosi-fedora:
-    uses: ./.github/workflows/fedora.yml
+    uses: analogdevicesinc/br2-external/.github/workflows/fedora.yml@main
     permissions:
       contents: write
 
