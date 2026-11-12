@@ -40,6 +40,10 @@ jobs:
     with:
       defconfig: ${{ matrix.defconfig }}
       flavor: ${{ matrix.flavor }}
+      app-token-repositories: ${{ matrix.app-token-repositories }}
+    secrets:
+      APP_CLIENT_ID: ${{ secrets.TOKEN_GENERATOR_APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.TOKEN_GENERATOR_APP_PRIVATE_KEY }}
     permissions:
       contents: write
 
