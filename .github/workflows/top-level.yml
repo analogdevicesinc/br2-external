@@ -36,15 +36,19 @@ jobs:
           - defconfig: zynq_pluto_defconfig
           - defconfig: zynq_m2k_defconfig
           - defconfig: microblaze_adi_rootfs_defconfig
-    uses: ./.github/workflows/build.yml
+    uses: analogdevicesinc/br2-external/.github/workflows/build.yml@main
     with:
       defconfig: ${{ matrix.defconfig }}
       flavor: ${{ matrix.flavor }}
+      app-token-repositories: ${{ matrix.app-token-repositories }}
+    secrets:
+      APP_CLIENT_ID: ${{ secrets.TOKEN_GENERATOR_APP_ID }}
+      APP_PRIVATE_KEY: ${{ secrets.TOKEN_GENERATOR_APP_PRIVATE_KEY }}
     permissions:
       contents: write
 
   build-mkosi-fedora:
-    uses: ./.github/workflows/fedora.yml
+    uses: analogdevicesinc/br2-external/.github/workflows/fedora.yml@main
     permissions:
       contents: write
 

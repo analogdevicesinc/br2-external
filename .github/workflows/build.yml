@@ -7,6 +7,10 @@ on:
         description: 'Runner (defaults to vars.RUNNER)'
         type: string
         default: ""
+      path:
+        description: "Configuration trees, space separated if many (defaults to '.')"
+        type: string
+        default: "."
       defconfig:
         description: Buildroot defconfig
         required: true
@@ -25,6 +29,9 @@ on:
       runner:
         type: string
         default: ""
+      path:
+        type: string
+        default: "."
       defconfig:
         required: true
         type: string
@@ -74,41 +81,55 @@ jobs:
             xargs -r -n1 git config --global --unset-all
           git config --global url."https://x-access-token:${GH_TOKEN}@github.com/".insteadOf "https://github.com/"
 
+      - name: Resolve BR2_EXTERNAL
+        env:
+          BR2_EXTERNAL_PATHS: ${{ inputs.path }}
+        run: |
+          set -- $BR2_EXTERNAL_PATHS
+          br2_base=$(realpath -e "$1")
+          br2_external=$(realpath -e "$@")
+          echo "br2_base=${br2_base}" >> "$GITHUB_ENV"
+          echo "br2_external=${br2_external//$'\n'/ }" >> "$GITHUB_ENV"
+
       - name: Build image
         run: |
-          cd buildroot
+          cd "${br2_base}/buildroot"
           umask 022
           make distclean
-          make BR2_EXTERNAL="${PWD}/.." ${{ inputs.defconfig }}
-          support/kconfig/merge_config.sh .config \
-            "../configs/buildroot.fragment"
-          if [ -n "${{ inputs.flavor }}" ]; then
-            support/kconfig/merge_config.sh .config \
-              "../configs/${{ inputs.flavor }}.fragment"
-          fi
+          make BR2_EXTERNAL="${br2_external}" ${{ inputs.defconfig }}
+          fragments=()
+          for name in buildroot ${{ inputs.flavor }}; do
+            found=
+            for tree in ${br2_external}; do
+              f="${tree}/configs/${name}.fragment"
+              [ -f "$f" ] && fragments+=("$f") && found=y
+            done
+            [ -n "$found" ] || { echo "::error::${name}.fragment not found"; exit 1; }
+          done
+          support/kconfig/merge_config.sh .config "${fragments[@]}"
           make -j$(nproc)
 
       - name: Build SDK
         if: ${{ github.event_name == 'release' || github.event_name == 'workflow_dispatch' }}
         run: |
-          cd buildroot
+          cd "${br2_base}/buildroot"
           make sdk -j$(nproc)
 
       - name: Generate SBOM
         run: |
           [[ "${{ runner.debug }}" == "1" ]] && set -x
-          image_path="buildroot/output/images"
+          image_path="${br2_base}/buildroot/output/images"
 
           defconfig="${{ inputs.defconfig }}"
           [ -n "${{ inputs.flavor }}" ] && defconfig="${defconfig}-${{ inputs.flavor }}"
 
           # buildroot >= 2024.05
-          cd buildroot
+          cd "${br2_base}/buildroot"
           make show-info \
             | utils/generate-cyclonedx \
                 --project-name "$defconfig" \
                 --project-version "${{ github.ref_name }}" \
-            > "../${image_path}/sbom.json"
+            > "${image_path}/sbom.json"
 
       - name: Prepare image names
         run: |
@@ -120,7 +141,7 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: ${{ env.image_name }}
-          path: buildroot/output/images
+          path: ${{ env.br2_base }}/buildroot/output/images
 
       - name: Clean-up
         if: always()
