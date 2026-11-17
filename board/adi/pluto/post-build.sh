@@ -49,7 +49,7 @@ genimage                           \
 	--config "${GENIMAGE_CFG}"
 
 rm -f ${TARGET_DIR}/opt/boot.vfat
-rm -f ${TARGET_DIR}/etc/init.d/S99iiod
+rm -f ${TARGET_DIR}/etc/init.d/S60iiod
 rm -Rf ${TARGET_DIR}/etc/dropbear
 
 mkdir -p ${TARGET_DIR}/www/img
