@@ -25,6 +25,9 @@ jobs:
           sudo apt-get update -q
           sudo apt-get install -y dnf rpm bubblewrap
 
+      - name: Fetch SHARC firmware
+        run: ci/sharc-firmware.sh
+
       - name: Build rootfs
         run: sudo -E $(which mkosi) -C ci build
 
