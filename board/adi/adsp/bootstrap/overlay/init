@@ -7,7 +7,7 @@ mount -t devtmpfs devtmpfs /dev
 set -o pipefail
 
 EMMC_DEV=/dev/mmcblk0
-NAND_DEV=/dev/mtd5
+NAND_PART=xspi1-data
 RCU0_STAT=0x3108C004
 BITP_RCU_STAT_BMODE=8
 BITM_RCU_STAT_BMODE=0x00000F00
@@ -15,6 +15,28 @@ SPI_BMODE=1
 
 NETWORK_CONFIGURED=0
 BASE_URL=
+
+# MTD numbers depend on probe order, which differs between boards, so find
+# partitions by name. Print the device node of the partition named $1.
+mtd_by_name() {
+	MTD_FOUND=
+	for MTD_SYS in /sys/class/mtd/mtd*; do
+		case "$MTD_SYS" in *ro) continue ;; esac
+		[ "$(cat "$MTD_SYS/name" 2>/dev/null)" = "$1" ] || continue
+		if [ -n "$MTD_FOUND" ]; then
+			echo "ERROR: More than one MTD partition is named $1." >&2
+			return 1
+		fi
+		MTD_FOUND="/dev/${MTD_SYS##*/}"
+	done
+
+	if [ -z "$MTD_FOUND" ]; then
+		echo "ERROR: No MTD partition named $1." >&2
+		return 1
+	fi
+
+	echo "$MTD_FOUND"
+}
 
 rescue_shell() {
 	echo
@@ -69,13 +91,16 @@ install_spi_uboot() {
 	echo
 	echo "---- SPI Flash (U-Boot) ----"
 
-	if ! flashcp /lib/firmware/u-boot-spl.ldr /dev/mtd0; then
-		echo "ERROR: Failed to write u-boot-spl.ldr to mtd0."
+	SPL_MTD=$(mtd_by_name u-boot-spl) || return 1
+	UBOOT_MTD=$(mtd_by_name u-boot) || return 1
+
+	if ! flashcp /lib/firmware/u-boot-spl.ldr "$SPL_MTD"; then
+		echo "ERROR: Failed to write u-boot-spl.ldr to u-boot-spl (${SPL_MTD})."
 		return 1
 	fi
 
-	if ! flashcp /lib/firmware/u-boot.ldr /dev/mtd1; then
-		echo "ERROR: Failed to write u-boot.ldr to mtd1."
+	if ! flashcp /lib/firmware/u-boot.ldr "$UBOOT_MTD"; then
+		echo "ERROR: Failed to write u-boot.ldr to u-boot (${UBOOT_MTD})."
 		return 1
 	fi
 
@@ -142,6 +167,9 @@ install_emmc_fedora() {
 }
 
 install_spi_nor() {
+	KERNEL_MTD=$(mtd_by_name kernel) || return 1
+	ROOTFS_MTD=$(mtd_by_name rootfs) || return 1
+
 	if ! setup_network; then
 		return 1
 	fi
@@ -161,13 +189,13 @@ install_spi_nor() {
 		return 1
 	fi
 
-	if ! flashcp /tmp/kernel.itb /dev/mtd2; then
-		echo "ERROR: Failed to write kernel.itb to mtd2."
+	if ! flashcp /tmp/kernel.itb "$KERNEL_MTD"; then
+		echo "ERROR: Failed to write kernel.itb to kernel (${KERNEL_MTD})."
 		return 1
 	fi
 
-	if ! flashcp /tmp/rootfs.erofs /dev/mtd3; then
-		echo "ERROR: Failed to write rootfs.erofs to mtd3."
+	if ! flashcp /tmp/rootfs.erofs "$ROOTFS_MTD"; then
+		echo "ERROR: Failed to write rootfs.erofs to rootfs (${ROOTFS_MTD})."
 		return 1
 	fi
 
@@ -177,6 +205,17 @@ install_spi_nor() {
 }
 
 install_nand() {
+	NAND_MTD=$(mtd_by_name "$NAND_PART") || return 1
+
+	# The xSPI1 flash is NOR or NAND depending on the board variant
+	case "$(cat "/sys/class/mtd/${NAND_MTD##*/}/type")" in
+		*nand) ;;
+		*)
+			echo "ERROR: ${NAND_PART} (${NAND_MTD}) is not a NAND flash."
+			return 1
+			;;
+	esac
+
 	if ! setup_network; then
 		return 1
 	fi
@@ -190,8 +229,8 @@ install_nand() {
 		return 1
 	fi
 
-	if ! ubiformat "$NAND_DEV" -f /tmp/nand.img -y; then
-		echo "ERROR: Failed to write nand.img to ${NAND_DEV}."
+	if ! ubiformat "$NAND_MTD" -f /tmp/nand.img -y; then
+		echo "ERROR: Failed to write nand.img to ${NAND_PART} (${NAND_MTD})."
 		return 1
 	fi
 
