@@ -183,9 +183,9 @@ install_spi_nor() {
 		return 1
 	fi
 
-	echo "Downloading ${BASE_URL}/debug/rootfs.erofs..."
-	if ! wget -O /tmp/rootfs.erofs "${BASE_URL}/debug/rootfs.erofs"; then
-		echo "ERROR: Failed to download rootfs.erofs."
+	echo "Downloading ${BASE_URL}/debug/rootfs.erofs.ubi..."
+	if ! wget -O /tmp/rootfs.erofs.ubi "${BASE_URL}/debug/rootfs.erofs.ubi"; then
+		echo "ERROR: Failed to download rootfs.erofs.ubi."
 		return 1
 	fi
 
@@ -194,12 +194,13 @@ install_spi_nor() {
 		return 1
 	fi
 
-	if ! flashcp /tmp/rootfs.erofs "$ROOTFS_MTD"; then
-		echo "ERROR: Failed to write rootfs.erofs to rootfs (${ROOTFS_MTD})."
+	# The rootfs is a UBI image, which U-Boot attaches by partition name
+	if ! ubiformat "$ROOTFS_MTD" -f /tmp/rootfs.erofs.ubi -y; then
+		echo "ERROR: Failed to write rootfs.erofs.ubi to rootfs (${ROOTFS_MTD})."
 		return 1
 	fi
 
-	rm -f /tmp/kernel.itb /tmp/rootfs.erofs
+	rm -f /tmp/kernel.itb /tmp/rootfs.erofs.ubi
 	sync
 	echo "SPI NOR kernel + rootfs install complete."
 }
